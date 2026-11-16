@@ -1,0 +1,46 @@
+# Nampani Ink website: Next.js (web) + NestJS (api).
+#   docker compose up -d --build      → http://localhost:3000
+# Only the web service is published; the API is reached through it (/api, /uploads).
+
+name: nampani-ink
+
+services:
+  api:
+    build: ./api
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      CONTENT_FILE: /app/content/studio.json
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      # Edit api/content/studio.json on the host; the API picks up changes without a restart.
+      - ./api/content:/app/content:ro
+      # Customer reference photos survive rebuilds and restarts.
+      - uploads:/app/uploads
+    expose:
+      - "4000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/api/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  web:
+    build:
+      context: ./web
+      args:
+        API_INTERNAL_URL: http://api:4000
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://api:4000
+      # Public address of the site — used for canonical URLs, sitemap.xml and structured data.
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  uploads:

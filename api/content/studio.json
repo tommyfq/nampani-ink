@@ -1,0 +1,544 @@
+{
+  "_note": "PLACEHOLDER CONTENT. Replace every value with your studio's real data. The API re-reads this file when it changes, so no restart is needed.",
+  "studio": {
+    "name": "Nampani Ink",
+    "monogram": "N·I",
+    "tagline": "Fine line & Nusantara tattoo studio",
+    "description": "Fine line tattoos inspired by Javanese craft — batik, wayang and Aksara Jawa — plus micro realism and custom design across three studios in Bali. Book over WhatsApp.",
+    "city": "Bali",
+    "region": "Bali",
+    "country": "ID",
+    "established": 2019,
+    "rating": {
+      "score": 5.0,
+      "count": 480,
+      "source": "Google"
+    },
+    "priceFrom": "IDR 750.000",
+    "priceRange": "IDR 750.000 – 15.000.000",
+    "hoursNote": "Walk-ins welcome · open daily 10am – 10pm",
+    "email": "hello@nampaniink.com",
+    "whatsapp": "6281200000000",
+    "social": {
+      "instagram": "https://instagram.com/",
+      "tiktok": "https://tiktok.com/"
+    },
+    "nearbyAreas": [
+      "Canggu",
+      "Pererenan",
+      "Berawa",
+      "Seminyak",
+      "Kerobokan",
+      "Umalas",
+      "Kuta",
+      "Legian",
+      "Jimbaran",
+      "Uluwatu",
+      "Bingin",
+      "Pecatu"
+    ]
+  },
+  "branches": [
+    {
+      "id": "canggu",
+      "name": "Canggu",
+      "badge": "Flagship",
+      "area": "Jl. Pantai Batu Bolong",
+      "address": {
+        "street": "Jl. Pantai Batu Bolong No. 00",
+        "locality": "Canggu",
+        "region": "Bali",
+        "postalCode": "80361",
+        "country": "ID"
+      },
+      "hours": "10am – 10pm daily",
+      "opens": "10:00",
+      "closes": "22:00",
+      "whatsapp": "6281200000001",
+      "mapsUrl": "https://maps.google.com/?q=Canggu+Bali",
+      "geo": null,
+      "intro": "Our flagship studio near Batu Bolong beach, with three private rooms and the full artist team on rotation."
+    },
+    {
+      "id": "seminyak",
+      "name": "Seminyak",
+      "badge": "Walk-ins",
+      "area": "Jl. Kayu Aya",
+      "address": {
+        "street": "Jl. Kayu Aya No. 00",
+        "locality": "Seminyak",
+        "region": "Bali",
+        "postalCode": "80361",
+        "country": "ID"
+      },
+      "hours": "10am – 12am daily",
+      "opens": "10:00",
+      "closes": "23:59",
+      "whatsapp": "6281200000002",
+      "mapsUrl": "https://maps.google.com/?q=Seminyak+Bali",
+      "geo": null,
+      "intro": "Open late on Kayu Aya, made for walk-ins and evening sessions after the beach."
+    },
+    {
+      "id": "uluwatu",
+      "name": "Uluwatu",
+      "badge": "By appointment",
+      "area": "Jl. Labuansait",
+      "address": {
+        "street": "Jl. Labuansait No. 00",
+        "locality": "Pecatu",
+        "region": "Bali",
+        "postalCode": "80361",
+        "country": "ID"
+      },
+      "hours": "10am – 9pm daily",
+      "opens": "10:00",
+      "closes": "21:00",
+      "whatsapp": "6281200000003",
+      "mapsUrl": "https://maps.google.com/?q=Uluwatu+Bali",
+      "geo": null,
+      "intro": "A quiet studio on the Bukit for longer custom pieces, by appointment."
+    }
+  ],
+  "styles": [
+    {
+      "id": "fine-line",
+      "name": "Fine Line",
+      "badge": "Most loved",
+      "motif": "rose",
+      "image": null,
+      "description": "Delicate single-needle line work: small, precise and elegant tattoos that age gracefully when done with the right depth."
+    },
+    {
+      "id": "batik-fine-line",
+      "name": "Batik Fine Line",
+      "badge": "Nusantara",
+      "motif": "lung",
+      "image": null,
+      "description": "Javanese batik ornament — vines, flowers and isen-isen dots — redrawn as single-needle fine line work."
+    },
+    {
+      "id": "wayang",
+      "name": "Wayang",
+      "badge": "Nusantara",
+      "motif": "gunungan",
+      "image": null,
+      "description": "Wayang kulit figures and the gunungan tree of life, drawn as delicate line work."
+    },
+    {
+      "id": "aksara-jawa",
+      "name": "Aksara Jawa Lettering",
+      "badge": "Nusantara",
+      "motif": "aksara",
+      "image": null,
+      "description": "Names and words in Javanese script (Hanacaraka). Every design is spelling-checked before the session."
+    },
+    {
+      "id": "micro-realism",
+      "name": "Micro Realism",
+      "badge": "Trending",
+      "motif": "eye",
+      "image": null,
+      "description": "Portraits, pets and objects shaded realistically at a small scale, with careful detail."
+    },
+    {
+      "id": "floral-botanical",
+      "name": "Floral & Botanical",
+      "badge": "Most loved",
+      "motif": "leaf",
+      "image": null,
+      "description": "Flowers, leaves and botanical studies, from a single stem to a full sleeve of island flowers."
+    },
+    {
+      "id": "lettering",
+      "name": "Lettering & Script",
+      "badge": "",
+      "motif": "script",
+      "image": null,
+      "description": "Names, dates, handwriting and quotes in clean custom lettering that stays readable over time."
+    },
+    {
+      "id": "animals",
+      "name": "Animals & Pets",
+      "badge": "",
+      "motif": "snake",
+      "image": null,
+      "description": "Fine line and realistic animals, including tributes to your own pets drawn from your photos."
+    },
+    {
+      "id": "balinese",
+      "name": "Balinese & Symbols",
+      "badge": "Bali",
+      "motif": "sun",
+      "image": null,
+      "description": "Traditional Balinese masks, barong, symbols and motifs, drawn by local artists who know their meaning."
+    },
+    {
+      "id": "blackwork",
+      "name": "Blackwork",
+      "badge": "",
+      "motif": "moon",
+      "image": null,
+      "description": "Bold black ink, solid fills and graphic shapes that stay strong for decades."
+    },
+    {
+      "id": "ornamental",
+      "name": "Ornamental",
+      "badge": "",
+      "motif": "compass",
+      "image": null,
+      "description": "Mandalas, dotwork, geometry and symmetrical ornaments that follow the body's lines."
+    }
+  ],
+  "artists": [
+    {
+      "id": "ayu",
+      "name": "Ayu",
+      "role": "Fine line & florals",
+      "branch": "canggu",
+      "years": 6,
+      "motif": "leaf",
+      "photo": null,
+      "bio": "Delicate single-needle work, botanical pieces and soft shading.",
+      "specialties": [
+        "batik-fine-line",
+        "fine-line",
+        "floral-botanical"
+      ]
+    },
+    {
+      "id": "dimas",
+      "name": "Dimas",
+      "role": "Micro realism",
+      "branch": "canggu",
+      "years": 8,
+      "motif": "eye",
+      "photo": null,
+      "bio": "Portraits and pets at small scale, with careful detail.",
+      "specialties": [
+        "micro-realism",
+        "animals"
+      ]
+    },
+    {
+      "id": "wayan",
+      "name": "Wayan",
+      "role": "Balinese & blackwork",
+      "branch": "seminyak",
+      "years": 10,
+      "motif": "sun",
+      "photo": null,
+      "bio": "Traditional Balinese masks, symbols and bold black pieces.",
+      "specialties": [
+        "wayang",
+        "balinese",
+        "blackwork"
+      ]
+    },
+    {
+      "id": "sari",
+      "name": "Sari",
+      "role": "Lettering & script",
+      "branch": "seminyak",
+      "years": 5,
+      "motif": "script",
+      "photo": null,
+      "bio": "Custom handwriting, names and dates in clean lettering.",
+      "specialties": [
+        "aksara-jawa",
+        "lettering",
+        "fine-line"
+      ]
+    },
+    {
+      "id": "made",
+      "name": "Made",
+      "role": "Ornamental & geometry",
+      "branch": "uluwatu",
+      "years": 7,
+      "motif": "compass",
+      "photo": null,
+      "bio": "Mandala, dotwork and symmetrical ornamental designs.",
+      "specialties": [
+        "batik-fine-line",
+        "ornamental",
+        "floral-botanical"
+      ]
+    },
+    {
+      "id": "rina",
+      "name": "Rina",
+      "role": "Animals & conceptual",
+      "branch": "uluwatu",
+      "years": 4,
+      "motif": "snake",
+      "photo": null,
+      "bio": "Story-led conceptual pieces and fine line animals.",
+      "specialties": [
+        "animals",
+        "micro-realism"
+      ]
+    }
+  ],
+  "gallery": [
+    {
+      "id": "W-116",
+      "style": "batik-fine-line",
+      "artist": "made",
+      "placement": "Shoulder",
+      "size": "16 cm",
+      "motif": "truntum",
+      "image": null
+    },
+    {
+      "id": "W-115",
+      "style": "aksara-jawa",
+      "artist": "sari",
+      "placement": "Wrist",
+      "size": "6 cm",
+      "motif": "aksara",
+      "image": null
+    },
+    {
+      "id": "W-114",
+      "style": "wayang",
+      "artist": "wayan",
+      "placement": "Back",
+      "size": "22 cm",
+      "motif": "gunungan",
+      "image": null
+    },
+    {
+      "id": "W-113",
+      "style": "batik-fine-line",
+      "artist": "ayu",
+      "placement": "Forearm",
+      "size": "14 cm",
+      "motif": "lung",
+      "image": null
+    },
+    {
+      "id": "W-101",
+      "style": "fine-line",
+      "artist": "ayu",
+      "placement": "Forearm",
+      "size": "8 cm",
+      "motif": "rose",
+      "image": null
+    },
+    {
+      "id": "W-102",
+      "style": "micro-realism",
+      "artist": "dimas",
+      "placement": "Upper arm",
+      "size": "10 cm",
+      "motif": "eye",
+      "image": null
+    },
+    {
+      "id": "W-103",
+      "style": "balinese",
+      "artist": "wayan",
+      "placement": "Back",
+      "size": "25 cm",
+      "motif": "sun",
+      "image": null
+    },
+    {
+      "id": "W-104",
+      "style": "lettering",
+      "artist": "sari",
+      "placement": "Collarbone",
+      "size": "6 cm",
+      "motif": "script",
+      "image": null
+    },
+    {
+      "id": "W-105",
+      "style": "ornamental",
+      "artist": "made",
+      "placement": "Spine",
+      "size": "20 cm",
+      "motif": "compass",
+      "image": null
+    },
+    {
+      "id": "W-106",
+      "style": "animals",
+      "artist": "rina",
+      "placement": "Ankle",
+      "size": "7 cm",
+      "motif": "snake",
+      "image": null
+    },
+    {
+      "id": "W-107",
+      "style": "floral-botanical",
+      "artist": "ayu",
+      "placement": "Shoulder",
+      "size": "12 cm",
+      "motif": "leaf",
+      "image": null
+    },
+    {
+      "id": "W-108",
+      "style": "blackwork",
+      "artist": "wayan",
+      "placement": "Calf",
+      "size": "15 cm",
+      "motif": "moon",
+      "image": null
+    },
+    {
+      "id": "W-109",
+      "style": "fine-line",
+      "artist": "sari",
+      "placement": "Wrist",
+      "size": "4 cm",
+      "motif": "wave",
+      "image": null
+    },
+    {
+      "id": "W-110",
+      "style": "micro-realism",
+      "artist": "dimas",
+      "placement": "Forearm",
+      "size": "9 cm",
+      "motif": "butterfly",
+      "image": null
+    },
+    {
+      "id": "W-111",
+      "style": "floral-botanical",
+      "artist": "made",
+      "placement": "Ribs",
+      "size": "18 cm",
+      "motif": "leaf",
+      "image": null
+    },
+    {
+      "id": "W-112",
+      "style": "animals",
+      "artist": "rina",
+      "placement": "Thigh",
+      "size": "14 cm",
+      "motif": "butterfly",
+      "image": null
+    }
+  ],
+  "reviews": [
+    {
+      "name": "Sample Client",
+      "text": "Clean studio, calm artist and the line work healed perfectly. Booking over WhatsApp took five minutes.",
+      "artist": "Ayu"
+    },
+    {
+      "name": "Sample Client",
+      "text": "They redrew my reference until it felt like mine. Fixed quote before we started, no surprises.",
+      "artist": "Dimas"
+    },
+    {
+      "name": "Sample Client",
+      "text": "First tattoo and I was nervous. Everything was explained, needles opened in front of me.",
+      "artist": "Sari"
+    },
+    {
+      "name": "Sample Client",
+      "text": "Beautiful Balinese piece on my back. Worth every minute in the chair.",
+      "artist": "Wayan"
+    },
+    {
+      "name": "Sample Client",
+      "text": "Walked in on a Tuesday, tattooed the same evening. Super friendly team.",
+      "artist": "Made"
+    },
+    {
+      "name": "Sample Client",
+      "text": "Free touch-up after healing was quick and easy to arrange from my hotel.",
+      "artist": "Rina"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "How does pricing work?",
+      "a": "Every tattoo is priced per design, not per hour. You get a fixed quote on WhatsApp once the drawing is agreed, so a slower, more careful session never costs you more."
+    },
+    {
+      "q": "Do I need a deposit to book?",
+      "a": "A small deposit holds your artist and time slot. It is deducted from the final price and can be moved once if your plans change."
+    },
+    {
+      "q": "Can I send my own reference image?",
+      "a": "Yes. Use the booking form or tap “Book this design” on any piece in the gallery. Your reference goes straight to our WhatsApp, and the artist adapts it to your placement."
+    },
+    {
+      "q": "Do you accept walk-ins?",
+      "a": "Yes, every studio takes walk-ins when an artist is free. Booking ahead on WhatsApp guarantees your preferred artist and time."
+    },
+    {
+      "q": "Is the touch-up free?",
+      "a": "One touch-up after healing (around 4–6 weeks) is included for every tattoo done with us."
+    },
+    {
+      "q": "What is the minimum age?",
+      "a": "18 years old with a valid ID. We do not tattoo minors, even with parental consent."
+    },
+    {
+      "q": "How do you keep things hygienic?",
+      "a": "Single-use needles and cartridges opened in front of you, disposable barriers on every surface, and hospital-grade sterilisation between clients."
+    }
+  ],
+  "accents": {
+    "brand": {
+      "jv": "ꦤꦩ꧀ꦥꦤꦶ",
+      "latin": "nampani",
+      "meaning": "to receive"
+    },
+    "work": {
+      "jv": "ꦏꦂꦪ",
+      "latin": "karya",
+      "meaning": "work, creation"
+    },
+    "artists": {
+      "jv": "ꦱꦼꦤꦶꦩꦤ꧀",
+      "latin": "seniman",
+      "meaning": "artist"
+    },
+    "approach": {
+      "jv": "ꦫꦱ",
+      "latin": "rasa",
+      "meaning": "feeling"
+    },
+    "studios": {
+      "jv": "ꦥꦶꦤꦫꦏ꧀",
+      "latin": "pinarak",
+      "meaning": "please, come in"
+    }
+  },
+  "prep": [
+    {
+      "title": "Moisturise your skin",
+      "text": "Use a simple, unscented moisturiser on the area for three days before. Soft, hydrated skin takes ink more evenly."
+    },
+    {
+      "title": "Eat before you come",
+      "text": "Have a proper meal an hour before and bring water and a snack. Low blood sugar makes long sessions harder."
+    },
+    {
+      "title": "No alcohol the day before",
+      "text": "Alcohol thins the blood and slows healing. Skip it the day before your session and the day after."
+    },
+    {
+      "title": "Stay out of the sun",
+      "text": "Sunburnt or peeling skin can’t be tattooed. Plan beach and surf days for after you heal."
+    },
+    {
+      "title": "Wear loose clothes",
+      "text": "Choose clothing that gives easy access to the placement and won’t rub the fresh tattoo afterwards."
+    },
+    {
+      "title": "Bring your references",
+      "text": "Keep your reference photos on your phone so your artist can finalise the drawing with you on the day."
+    }
+  ]
+}
