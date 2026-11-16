@@ -5,7 +5,12 @@ export function siteUrl() {
   return (process.env.SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
 }
 
-export const abs = (path: string) => `${siteUrl()}${path.startsWith('/') ? path : `/${path}`}`;
+export const abs = (path: string) => {
+  let p = path.startsWith('/') ? path : `/${path}`;
+  // Static (GitHub Pages) build serves pages as /path/ — match it so links don't redirect.
+  if (process.env.STATIC_EXPORT === '1' && !p.endsWith('/') && !p.includes('#') && !/\.[a-z0-9]+$/i.test(p)) p += '/';
+  return `${siteUrl()}${p}`;
+};
 
 /* ---------- schema.org structured data (JSON-LD) ---------- */
 
@@ -56,7 +61,7 @@ export function parlorLd(studio: Studio, branch: Branch) {
     '@id': abs(`/studios/${branch.id}#parlor`),
     name: `${studio.name} ${branch.name}`,
     url: abs(`/studios/${branch.id}`),
-    image: abs('/opengraph-image'),
+    image: abs('/og.png'),
     telephone: `+${branch.whatsapp}`,
     email: studio.email,
     priceRange: studio.priceRange,

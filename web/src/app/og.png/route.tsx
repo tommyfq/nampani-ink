@@ -1,12 +1,12 @@
 import { ImageResponse } from 'next/og';
 import { getSite } from '@/lib/api';
 
-/** Share image for WhatsApp, Facebook, X etc. (1200×630), generated from the studio name. */
-export const size = { width: 1200, height: 630 };
-export const contentType = 'image/png';
-export const alt = 'Tattoo studio';
-
-export default async function OgImage() {
+/**
+ * /og.png — share image for WhatsApp, Facebook, X etc. (1200×630), generated from
+ * the studio name. Linked explicitly in layout metadata so the address is right
+ * both on the Docker server and on GitHub Pages (under /nampani-ink).
+ */
+export async function GET() {
   const { studio, branches } = await getSite();
   return new ImageResponse(
     (
@@ -23,6 +23,6 @@ export default async function OgImage() {
         </div>
       </div>
     ),
-    size,
+    { width: 1200, height: 630 },
   );
 }

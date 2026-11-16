@@ -5,11 +5,14 @@ import { BookingForm } from '@/components/BookingForm';
 import { Gallery } from '@/components/Gallery';
 import { JsonLd } from '@/components/JsonLd';
 import { ArtistCards, CtaPanel, PageHero, SectionHead } from '@/components/Sections';
-import { getArtist, getSite } from '@/lib/api';
+import { getArtist, getSite, staticParams } from '@/lib/api';
 import { breadcrumbLd, personLd } from '@/lib/seo';
 import { waLink } from '@/lib/whatsapp';
 
 type Props = { params: { slug: string } };
+
+// Static build: every page is pre-built. Server build: rendered on first visit, refreshed every 30 s.
+export const generateStaticParams = () => staticParams('artists');
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const [site, artist] = await Promise.all([getSite(), getArtist(params.slug)]);

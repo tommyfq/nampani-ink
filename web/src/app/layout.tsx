@@ -5,12 +5,10 @@ import { Header } from '@/components/Header';
 import { JsonLd } from '@/components/JsonLd';
 import { Reveal } from '@/components/Reveal';
 import { getSite } from '@/lib/api';
-import { organizationLd, siteUrl, websiteLd } from '@/lib/seo';
+import { abs, organizationLd, siteUrl, websiteLd } from '@/lib/seo';
 import { waLink } from '@/lib/whatsapp';
 import './globals.css';
 
-// Content comes from the API at request time, so pages always show the latest data.
-export const dynamic = 'force-dynamic';
 
 const sans = Inter_Tight({ subsets: ['latin'], weight: ['300', '400', '500'], variable: '--font-sans', display: 'swap' });
 const serif = Cormorant_Garamond({ subsets: ['latin'], weight: ['400', '500'], style: ['normal', 'italic'], variable: '--font-serif', display: 'swap' });
@@ -27,8 +25,11 @@ export async function generateMetadata(): Promise<Metadata> {
     applicationName: studio.name,
     keywords: ['tattoo studio', `tattoo ${studio.city}`, 'fine line tattoo', 'batik tattoo', 'wayang tattoo', 'aksara jawa tattoo', 'micro realism tattoo', `${studio.city} tattoo artist`],
     alternates: { canonical: '/' },
-    openGraph: { type: 'website', siteName: studio.name, title, description: studio.description, url: '/', locale: 'en_US' },
-    twitter: { card: 'summary_large_image', title, description: studio.description },
+    openGraph: {
+      type: 'website', siteName: studio.name, title, description: studio.description, url: '/', locale: 'en_US',
+      images: [{ url: abs('/og.png'), width: 1200, height: 630, alt: studio.name }],
+    },
+    twitter: { card: 'summary_large_image', title, description: studio.description, images: [abs('/og.png')] },
     robots: { index: true, follow: true },
     formatDetection: { telephone: false },
   };

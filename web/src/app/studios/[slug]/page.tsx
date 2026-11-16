@@ -4,11 +4,14 @@ import { BookingForm } from '@/components/BookingForm';
 import { Gallery } from '@/components/Gallery';
 import { JsonLd } from '@/components/JsonLd';
 import { ArtistCards, BranchCards, CtaPanel, FaqSection, PageHero, SectionHead } from '@/components/Sections';
-import { getBranch, getSite } from '@/lib/api';
+import { getBranch, getSite, staticParams } from '@/lib/api';
 import { breadcrumbLd, parlorLd } from '@/lib/seo';
 import { waLink } from '@/lib/whatsapp';
 
 type Props = { params: { slug: string } };
+
+// Static build: every page is pre-built. Server build: rendered on first visit, refreshed every 30 s.
+export const generateStaticParams = () => staticParams('branches');
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const [site, branch] = await Promise.all([getSite(), getBranch(params.slug)]);

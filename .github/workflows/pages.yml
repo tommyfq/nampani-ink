@@ -1,0 +1,66 @@
+# Publishes a static version of the website to GitHub Pages:
+#   https://tommyfq.github.io/nampani-ink/
+# Runs on every push to main (and manually from the Actions tab).
+# Content comes from api/content/studio.json at build time. The reference-photo
+# upload is not available here (no server); the Docker version keeps it.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Build static site
+        run: npm run build
+        env:
+          STATIC_EXPORT: '1'
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
+          CONTENT_FILE: ../api/content/studio.json
+          NEXT_TELEMETRY_DISABLED: '1'
+
+      # Let GitHub Pages serve Next.js's _next/ folder as-is.
+      - run: touch out/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

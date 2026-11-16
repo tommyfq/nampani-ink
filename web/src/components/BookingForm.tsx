@@ -9,6 +9,8 @@ export type Prefill = { branch?: string; artist?: string; style?: string; placem
 
 const MAX_FILES = 3;
 const MAX_MB = 10;
+// Static GitHub Pages build has no API, so photos are sent in the WhatsApp chat instead.
+const CAN_UPLOAD = process.env.NEXT_PUBLIC_STATIC_EXPORT !== '1';
 
 type Ref = { file: File; url: string };
 
@@ -146,7 +148,10 @@ export function BookingForm({ studio, branches, artists, styles, defaults = {} }
       <div className="book-intro">
         <p className="label">Book a session</p>
         <h2 id="book-title">Tell us what you want to carry.</h2>
-        <p>Fill this in and it opens WhatsApp with everything ready to send to the studio you choose. Reference photos are attached as links.</p>
+        <p>
+          Fill this in and it opens WhatsApp with everything ready to send to the studio you choose.
+          {CAN_UPLOAD ? ' Reference photos are attached as links.' : ' Send your reference photos in the chat.'}
+        </p>
         <ul className="contact-list">
           <li><strong>WhatsApp</strong><a href={waLink(studio.whatsapp, `Hi ${studio.name}!`)} target="_blank" rel="noopener">+{studio.whatsapp}</a></li>
           <li><strong>Email</strong><a href={`mailto:${studio.email}`}>{studio.email}</a></li>
@@ -182,6 +187,7 @@ export function BookingForm({ studio, branches, artists, styles, defaults = {} }
         <div className="field"><label htmlFor="f-placement">Placement</label><input id="f-placement" name="placement" placeholder="e.g. inner forearm" value={values.placement} onChange={set('placement')} /></div>
         <div className="field"><label htmlFor="f-size">Approx. size</label><input id="f-size" name="size" placeholder="e.g. 8 cm" value={values.size} onChange={set('size')} /></div>
         <div className="field full"><label htmlFor="f-message">Your idea</label><textarea id="f-message" name="message" rows={4} placeholder="Describe the tattoo, meaning, colour or black & grey…" value={values.message} onChange={set('message')} /></div>
+        {CAN_UPLOAD && (
         <div className="field full">
           <label htmlFor="f-ref">Reference photos</label>
           <label className="upload" htmlFor="f-ref">
@@ -201,6 +207,10 @@ export function BookingForm({ studio, branches, artists, styles, defaults = {} }
             </div>
           )}
         </div>
+        )}
+        {!CAN_UPLOAD && (
+          <p className="field full upload-hint">Have reference photos? Attach them in the WhatsApp chat after you press send.</p>
+        )}
         {values.design && (
           <div className="field full design-chip">
             <span>Design from gallery: <strong>{values.design}</strong></span>

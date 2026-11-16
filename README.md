@@ -22,7 +22,7 @@ Open http://localhost:3000.
 
 - Only the `web` service is published. The browser calls `/api/*` and `/uploads/*` on the website,
   and Next.js forwards them to the `api` service inside Docker.
-- `api/content` is mounted into the API container. Edit `studio.json` and refresh — no rebuild needed.
+- `api/content` is mounted into the API container. Edit `studio.json`; pages show the change within 30 seconds — no rebuild needed.
 - Customer reference photos are stored in the `uploads` Docker volume.
 
 Useful commands:
@@ -31,6 +31,31 @@ Useful commands:
 docker compose logs -f            # follow logs
 docker compose up -d --build web  # rebuild after changing website code
 docker compose down               # stop (photos are kept in the volume)
+```
+
+## Public preview on GitHub Pages
+
+A static copy of the site is published to **https://tommyfq.github.io/nampani-ink/** by
+[.github/workflows/pages.yml](.github/workflows/pages.yml) on every push to `main`.
+
+One-time setup on GitHub:
+
+1. The repository must be **public** (GitHub Free), or the account needs GitHub Pro for Pages on a private repo.
+2. **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+3. Push to `main`, or run the workflow from the **Actions** tab.
+
+Differences from the Docker version:
+
+- Content is taken from `api/content/studio.json` when the workflow runs — push a change to update the site.
+- No reference-photo upload (no server). Visitors attach photos in the WhatsApp chat instead.
+- `robots.txt` and `sitemap.xml` sit under `/nampani-ink/`, so search engines won't use them there.
+  Use the Docker version on your own domain for SEO.
+
+Build the static version locally:
+
+```bash
+cd web
+STATIC_EXPORT=1 BASE_PATH=/nampani-ink SITE_URL=https://tommyfq.github.io/nampani-ink npm run build   # output in web/out
 ```
 
 ## Run without Docker (development)
