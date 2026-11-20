@@ -1,19 +1,23 @@
 /* ==========================================================================
-   Nampani Ink — editorial layout, Javanese palette
-   Background: mori #F1EADB. Text colours from the Nampani Inkhouse brand sheet:
-   #211F1C (ink, main text), #665744 (muted), #795A43 (accent), #B5A58D (soft).
+   Nampani Inkhouse — editorial layout, Javanese palette
+   Background: mori #F1EADB. Each earlier colour is swapped for the brand colour
+   of the same kind:
+     navy #1E2230        -> #211F1C  darkest (dark sections, menu)
+     dark brown #4A2E1F  -> #665744  dark brown (main text, wordmark)
+     sogan #8A5A36       -> #795A43  brown (buttons, accents, line art)
+     gold #B8925A        -> #B5A58D  soft sand (accents on dark)
    ========================================================================== */
 :root {
   --mori: #f1eadb;
   --mori-2: #e8decb;
   --mori-3: #d8ccb6;
-  --sogan: #795a43;       /* brand accent */
+  --sogan: #795a43;       /* was #8a5a36 */
   --sogan-hover: #665744;
-  --sogan-tua: #211f1c;   /* brand ink: main text */
-  --muted: #665744;       /* brand muted text */
-  --wedel: #211f1c;       /* brand ink: dark sections */
+  --sogan-tua: #665744;   /* was #4a2e1f: main text */
+  --muted: #795a43;       /* secondary text, a step lighter than main text */
+  --wedel: #211f1c;       /* was navy #1e2230: dark sections */
   --wedel-2: #302c28;     /* raised surfaces on dark */
-  --prada: #b5a58d;       /* brand soft: accents on dark */
+  --prada: #b5a58d;       /* was gold #b8925a */
   --on-dark: #f1eadb;
   --on-dark-muted: #b5a58d;
   --ghost: #ddd1bd; /* giant background words */
@@ -359,7 +363,7 @@ main { padding-top: var(--bar); }
 .footer-logo { font-family: var(--f-serif); font-size: 30px; color: var(--sogan-tua); text-transform: uppercase; letter-spacing: 0; }
 
 /* ---------- Floating WhatsApp & mobile bar ---------- */
-.wa-float { position: fixed; right: 20px; bottom: 20px; z-index: 50; width: 54px; height: 54px; border-radius: 50%; background: var(--sogan); display: grid; place-items: center; box-shadow: 0 8px 24px rgba(33, 31, 28, .25); transition: transform .2s; }
+.wa-float { position: fixed; right: 20px; bottom: 20px; z-index: 50; width: 54px; height: 54px; border-radius: 50%; background: var(--sogan); display: grid; place-items: center; box-shadow: 0 8px 24px rgba(102, 87, 68, .25); transition: transform .2s; }
 .wa-float:hover { transform: scale(1.06); }
 .wa-float svg { width: 28px; height: 28px; fill: #fff; }
 .mobile-bar { display: none; }
