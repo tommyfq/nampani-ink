@@ -13,7 +13,7 @@ export async function GET() {
       <div
         style={{
           width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-          padding: 80, background: '#F1EADB', color: '#4A2E1F',
+          padding: 80, background: '#F1EADB', color: '#211F1C',
         }}
       >
         <div style={{ fontSize: 26, letterSpacing: 6, textTransform: 'uppercase', opacity: 0.7 }}>{studio.tagline}</div>

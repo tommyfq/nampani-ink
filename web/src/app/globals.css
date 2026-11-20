@@ -1,21 +1,21 @@
 /* ==========================================================================
    Nampani Ink — editorial layout, Javanese palette
-   Main colours: mori #F1EADB (background) and sogan #8A5A36 (accent).
-   Supporting colours from the moodboard: sogan tua, wedel, prada.
+   Background: mori #F1EADB. Text colours from the Nampani Inkhouse brand sheet:
+   #211F1C (ink, main text), #665744 (muted), #795A43 (accent), #B5A58D (soft).
    ========================================================================== */
 :root {
   --mori: #f1eadb;
   --mori-2: #e8decb;
   --mori-3: #d8ccb6;
-  --sogan: #8a5a36;
-  --sogan-hover: #6f4628;
-  --sogan-tua: #4a2e1f;
-  --muted: #6e5a4b;
-  --wedel: #1e2230;
-  --wedel-2: #2a2f40;
-  --prada: #b8925a;
+  --sogan: #795a43;       /* brand accent */
+  --sogan-hover: #665744;
+  --sogan-tua: #211f1c;   /* brand ink: main text */
+  --muted: #665744;       /* brand muted text */
+  --wedel: #211f1c;       /* brand ink: dark sections */
+  --wedel-2: #302c28;     /* raised surfaces on dark */
+  --prada: #b5a58d;       /* brand soft: accents on dark */
   --on-dark: #f1eadb;
-  --on-dark-muted: #c9bfae;
+  --on-dark-muted: #b5a58d;
   --ghost: #ddd1bd; /* giant background words */
 
   --f-sans: var(--font-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -359,7 +359,7 @@ main { padding-top: var(--bar); }
 .footer-logo { font-family: var(--f-serif); font-size: 30px; color: var(--sogan-tua); text-transform: uppercase; letter-spacing: 0; }
 
 /* ---------- Floating WhatsApp & mobile bar ---------- */
-.wa-float { position: fixed; right: 20px; bottom: 20px; z-index: 50; width: 54px; height: 54px; border-radius: 50%; background: var(--sogan); display: grid; place-items: center; box-shadow: 0 8px 24px rgba(74, 46, 31, .25); transition: transform .2s; }
+.wa-float { position: fixed; right: 20px; bottom: 20px; z-index: 50; width: 54px; height: 54px; border-radius: 50%; background: var(--sogan); display: grid; place-items: center; box-shadow: 0 8px 24px rgba(33, 31, 28, .25); transition: transform .2s; }
 .wa-float:hover { transform: scale(1.06); }
 .wa-float svg { width: 28px; height: 28px; fill: #fff; }
 .mobile-bar { display: none; }
