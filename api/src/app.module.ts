@@ -15,6 +15,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { NotifyModule } from './notify/notify.service';
 import { MailModule } from './mail/mail.service';
 import { MailAdminModule } from './mail/mail.controller';
+import { DashboardModule } from './dashboard/dashboard.controller';
 import { RequestsModule } from './requests/requests.controller';
 
 @Module({
@@ -35,6 +36,7 @@ import { RequestsModule } from './requests/requests.controller';
     MailModule,
     MailAdminModule,
     RequestsModule,
+    DashboardModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
