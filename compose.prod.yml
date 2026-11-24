@@ -14,7 +14,8 @@ services:
       SITE_ADDRESS: ${SITE_ADDRESS:-:80}
       APP_ADDRESS: ${APP_ADDRESS:-http://pos.invalid}
     volumes:
-      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Mount the folder, not the file, so an updated Caddyfile is seen after upload.
+      - ./deploy:/etc/caddy:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:

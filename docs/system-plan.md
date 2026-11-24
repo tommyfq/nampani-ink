@@ -29,7 +29,7 @@ added in Admin, with no code change.
                                         │
         ┌───────────────────────────────┼───────────────────────────────┐
         ▼                               ▼                               ▼
- nampaniink.com                 app.nampaniink.com              api.nampaniink.com
+ nampani.ink                    pos.nampani.ink                 (internal, via /api)
  Landing page (Next.js)         POS + Admin (Next.js)           NestJS API
  static or server-rendered      one app, role-based screens     REST + webhooks
         │                               │                               │
@@ -48,7 +48,7 @@ the VPS or move to Cloudflare Pages (free); it only needs the public API.
 ### Why POS and Admin are one app
 They share login, the same data, the same components (calendar, customer lookup, booking card) and
 the same deploy. The user's **role** decides which menu they see. Two separate apps would double the
-work for little benefit. URLs: `app.nampaniink.com/pos/...` and `app.nampaniink.com/admin/...`.
+work for little benefit. URLs: `pos.nampani.ink/admin/...` (POS and Admin screens in one app).
 
 ### Tech choices
 
@@ -288,7 +288,7 @@ Three groups of endpoints, each with its own guard:
 | `/api/admin/*` | Manager / Owner | Admin | outlets, users, artists, catalogue, content, reports, settings |
 | `/api/webhooks/*` | Signature check | Midtrans/Xendit, WhatsApp | payment status, message status |
 
-- **Auth:** email + password, session in an `httpOnly`, `Secure` cookie for `.nampaniink.com`;
+- **Auth:** email + password, session in an `httpOnly`, `Secure` cookie for `pos.nampani.ink`;
   sessions stored in Redis so they can be revoked. Login rate limit and lockout.
 - **Outlet scope:** POS sends `X-Outlet-Id`; a guard checks it against `user_outlets` and every query
   is filtered by it.
