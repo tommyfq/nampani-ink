@@ -30,12 +30,15 @@ export interface Resource {
   path: string;
   roles: Role[];
   canDelete?: boolean;
+  /** Shown under the Delete button. */
+  deleteHelp?: string;
   intro?: string;
   columns: Column[];
   fields: Field[];
 }
 
 const yes = (v: boolean) => (v ? 'Yes' : 'No');
+const ROLE_LABEL: Record<string, string> = { OWNER: 'Owner', MANAGER: 'Manager', FRONT_DESK: 'Front desk', ARTIST: 'Artist' };
 const outletRef = { path: '/admin/outlets', label: (o: any) => `${o.name} (${o.code})` };
 const styleRef = { path: '/admin/styles', label: (s: any) => s.name };
 const artistRef = { path: '/admin/artists', label: (a: any) => a.displayName };
@@ -81,17 +84,21 @@ export const RESOURCES: Record<string, Resource> = {
     singular: 'staff login',
     path: '/admin/users',
     roles: ['OWNER'],
-    intro: 'One login per person. Owners see everything; other roles only see their outlets.',
+    canDelete: true,
+    deleteHelp: 'Only logins that were never used for bookings or payments can be deleted. For anyone else, turn off "Active": they can no longer log in and old records keep their name.',
+    intro: 'One login per person. Owners see everything; other roles only see their outlets. To remove someone who has worked here, turn off "Active".',
     columns: [
       { label: 'Name', value: (r) => r.name },
       { label: 'Email', value: (r) => r.email },
-      { label: 'Role', value: (r) => r.role.replace('_', ' ').toLowerCase() },
+      { label: 'Role', value: (r) => ROLE_LABEL[r.role] ?? r.role },
       { label: 'Outlets', value: (r, l) => r.outlets.map((o: any) => l.outletIds?.get(o.outletId) ?? '?').join(', ') || (r.role === 'OWNER' ? 'All' : '—') },
+      { label: 'PIN', value: (r) => (r.role === 'OWNER' || r.role === 'MANAGER' ? (r.hasPin ? 'Set' : 'Not set') : '—') },
+      { label: 'Last login', value: (r) => (r.lastLoginAt ? new Date(r.lastLoginAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }) : 'Never') },
       { label: 'Active', value: (r) => yes(r.isActive) },
     ],
     fields: [
       { key: 'name', label: 'Name', required: true },
-      { key: 'email', label: 'Email (login)', required: true, createOnly: true },
+      { key: 'email', label: 'Email (login)', required: true, help: 'Changing it logs the person out; they log in again with the new email.' },
       {
         key: 'role',
         label: 'Role',
@@ -106,9 +113,9 @@ export const RESOURCES: Record<string, Resource> = {
       },
       { key: 'phone', label: 'Phone', help: 'Digits only' },
       { key: 'outletIds', label: 'Outlets', type: 'refs', ref: outletRef, full: true, read: (r) => r.outlets?.map((o: any) => o.outletId) ?? [] },
-      { key: 'password', label: 'Password', type: 'password', help: 'At least 10 characters. On edit, leave empty to keep it.', full: true },
+      { key: 'password', label: 'Password', type: 'password', help: 'At least 10 characters. On edit, leave empty to keep it; a new password logs the person out everywhere.', full: true },
       { key: 'pin', label: 'Manager PIN (for voids and discounts)', type: 'pin', editOnly: true, help: '4–8 digits. Leave empty to keep it.' },
-      { key: 'isActive', label: 'Active', type: 'bool', editOnly: true },
+      { key: 'isActive', label: 'Active (can log in)', type: 'bool', editOnly: true },
     ],
   },
   artists: {

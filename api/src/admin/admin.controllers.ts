@@ -3,6 +3,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -88,9 +89,13 @@ const userSelect = {
   isActive: true,
   lastLoginAt: true,
   createdAt: true,
+  pinHash: true,
   outlets: { select: { outletId: true } },
   artist: { select: { id: true, displayName: true } },
 } satisfies Prisma.UserSelect;
+
+/** Never send the PIN hash to the browser, only whether a PIN is set. */
+const publicUser = <T extends { pinHash: string | null }>({ pinHash, ...u }: T) => ({ ...u, hasPin: Boolean(pinHash) });
 
 @Controller('admin/users')
 @UseGuards(SessionGuard)
@@ -103,8 +108,9 @@ export class UsersController {
   ) {}
 
   @Get()
-  list() {
-    return this.prisma.user.findMany({ select: userSelect, orderBy: [{ isActive: 'desc' }, { name: 'asc' }] });
+  async list() {
+    const users = await this.prisma.user.findMany({ select: userSelect, orderBy: [{ isActive: 'desc' }, { name: 'asc' }] });
+    return users.map(publicUser);
   }
 
   @Post()
@@ -119,6 +125,7 @@ export class UsersController {
         },
         select: userSelect,
       })
+      .then(publicUser)
       .catch(conflict);
   }
 
@@ -134,7 +141,8 @@ export class UsersController {
       throw new BadRequestException('You cannot deactivate or demote your own account');
     }
     const { password, pin, outletIds, ...data } = body;
-    const updated = await this.prisma.user.update({
+    const updated = await this.prisma.user
+      .update({
       where: { id },
       data: {
         ...data,
@@ -143,9 +151,46 @@ export class UsersController {
         ...(outletIds ? { outlets: { deleteMany: {}, create: outletIds.map((outletId) => ({ outletId })) } } : {}),
       },
       select: userSelect,
+      })
+      .catch(conflict);
+    // A new password, a new login email or deactivation logs the person out everywhere.
+    if (password || body.isActive === false || (data.email && data.email !== existing.email)) await this.auth.revokeAll(id);
+    return publicUser(updated);
+  }
+
+  /**
+   * Deletes a login that was never used for real work (e.g. made by mistake).
+   * Anyone with history (bookings, payments, messages, audit log, revenue share) is kept,
+   * so old records still show who did what: deactivate them instead.
+   */
+  @Delete(':id')
+  async remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() me: SessionUser) {
+    if (id === me.id) throw new BadRequestException('You cannot delete your own account');
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        role: true,
+        isActive: true,
+        _count: {
+          select: {
+            auditLogs: true,
+            bookingsMade: true,
+            bookingEvents: true,
+            paymentsTaken: true,
+            paymentsVoided: true,
+            messagesSent: true,
+            revenuePayee: true,
+          },
+        },
+      },
     });
-    if (password || body.isActive === false) await this.auth.revokeAll(id);
-    return updated;
+    if (!user) throw new NotFoundException();
+    if (Object.values(user._count).some((n) => n > 0)) {
+      throw new ConflictException('This person already has bookings, payments or other history, so the login cannot be deleted. Turn off "Active" instead: they can no longer log in and old records keep their name.');
+    }
+    await this.prisma.user.delete({ where: { id } });
+    await this.auth.revokeAll(id);
+    return { id };
   }
 }
 

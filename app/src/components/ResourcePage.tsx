@@ -219,6 +219,7 @@ function EditDrawer({
             <button type="button" className="btn danger" onClick={remove} disabled={busy}>Delete</button>
           )}
         </div>
+        {!isNew && resource.canDelete && resource.deleteHelp && <p className="muted small" style={{ marginTop: 10 }}>{resource.deleteHelp}</p>}
       </form>
     </div>
   );
