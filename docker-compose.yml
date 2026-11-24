@@ -56,8 +56,10 @@ services:
       SMTP_PORT: ${SMTP_PORT:-465}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
-      MAIL_FROM: ${MAIL_FROM:-Nampani Ink <studio@nampani.ink>}
-      MAIL_STUDIO_TO: ${MAIL_STUDIO_TO:-studio@nampani.ink}
+      MAIL_FROM: ${MAIL_FROM:-Nampani Ink <news@nampani.ink>}
+      MAIL_STUDIO_TO: ${MAIL_STUDIO_TO:-news@nampani.ink}
+      # Email login codes for staff: true/false (only active when SMTP_HOST is set).
+      LOGIN_OTP: ${LOGIN_OTP:-false}
       POS_URL: ${POS_URL:-https://pos.nampani.ink}
     volumes:
       # Edit api/content/studio.json on the host; the API picks up changes without a restart.

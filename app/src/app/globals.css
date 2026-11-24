@@ -117,6 +117,11 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .login { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: var(--bg); }
 .login .card { width: min(400px, 100%); display: grid; gap: 16px; padding: 32px; }
 .login .brand { padding: 0 0 4px; font-size: 26px; text-align: center; }
+.login .otp { font: 600 26px/1.2 var(--f); letter-spacing: .5em; text-align: center; padding: 12px 0 12px .5em; font-variant-numeric: tabular-nums; }
+.login-links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+button.link { background: none; border: 0; padding: 0; font: inherit; font-size: 14px; color: var(--accent); cursor: pointer; }
+button.link:hover:not(:disabled) { text-decoration: underline; }
+button.link:disabled { color: var(--muted); cursor: default; }
 
 /* ---------- Dashboard ---------- */
 .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: 18px; }

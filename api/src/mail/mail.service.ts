@@ -14,7 +14,7 @@ import { DEFAULT_TEMPLATES, EmailParts, EmailTemplate, EmailType, fill, renderHt
 /*
  * Configuration (environment):
  *   SMTP_HOST, SMTP_PORT (465), SMTP_SECURE (true for 465), SMTP_USER, SMTP_PASS
- *   MAIL_FROM        "Nampani Ink <studio@nampani.ink>"
+ *   MAIL_FROM        "Nampani Ink <news@nampani.ink>"
  *   MAIL_REPLY_TO    optional, defaults to MAIL_FROM
  *   MAIL_STUDIO_TO   where new-request alerts go, defaults to the MAIL_FROM address
  *   POS_URL          link in studio alerts, e.g. https://pos.nampani.ink
@@ -49,7 +49,7 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(MailService.name);
   private transport?: Transporter;
   private timer?: NodeJS.Timeout;
-  readonly from = process.env.MAIL_FROM || 'Nampani Ink <studio@nampani.ink>';
+  readonly from = process.env.MAIL_FROM || 'Nampani Ink <news@nampani.ink>';
   private readonly outboxDir = resolve(process.env.MAIL_OUTBOX_DIR || 'mail-outbox');
   readonly mode: 'smtp' | 'outbox' | 'off' = process.env.SMTP_HOST ? 'smtp' : process.env.NODE_ENV === 'production' ? 'off' : 'outbox';
 
@@ -446,6 +446,35 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
       studio,
     };
     return { subject: fill(t.subject, v), parts, html: renderHtml(parts) };
+  }
+
+  /** Staff login code. The code is never stored in the email log (only in the message itself). */
+  async loginCode(to: string, name: string, code: string, info: { device: string; ip: string }) {
+    const row = await this.prisma.siteSetting.findUnique({ where: { key: 'studio' } });
+    const s = (row?.value ?? {}) as { name?: string; email?: string };
+    const studioName = s.name || 'Nampani Ink';
+    const at = new Date();
+    const when = `${at.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Makassar' })}, ${localParts(at, 'Asia/Makassar').hhmm} WITA`;
+    return this.deliver({
+      type: 'loginCode' as EmailType,
+      key: `login:${randomUUID()}`,
+      to,
+      subject: `Your ${studioName} login code`,
+      parts: {
+        preheader: `Your login code is ${code}. It works for 10 minutes.`,
+        heading: code,
+        body: `Hi ${name.split(' ')[0]},\n\nUse this code to finish logging in to the ${studioName} POS. It works for 10 minutes and only once.\n\nNever share this code. Our team will never ask you for it.`,
+        details: [
+          ['Time', when],
+          ['Device', info.device],
+          ['IP address', info.ip || 'Unknown'],
+        ],
+        buttons: [],
+        note: "Wasn't you? Someone knows your password. Don't enter the code, and ask the owner to change your password right away.",
+        studio: { name: studioName, outlet: '', address: '', whatsapp: '', email: s.email || this.fromAddress },
+        footer: `You are receiving this email because someone logged in to your ${studioName} staff account.`,
+      },
+    });
   }
 
   async sendTest(type: EmailType, to: string, template?: EmailTemplate) {

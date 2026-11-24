@@ -39,6 +39,7 @@ const TYPE_LABEL: Record<string, string> = {
   reminder: 'Reminder',
   finalReceipt: 'Final receipt',
   test: 'Test',
+  loginCode: 'Staff login code',
 };
 const fmt = (iso: string) => new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 

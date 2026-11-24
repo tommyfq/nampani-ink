@@ -70,6 +70,7 @@ export interface EmailParts {
   details: [string, string][];
   buttons: { label: string; url: string }[];
   note?: string; // small boxed text, e.g. tattoo preparation
+  footer?: string; // replaces the default "because of your booking" line
   studio: { name: string; outlet: string; address: string; whatsapp: string; email: string };
 }
 
@@ -152,7 +153,7 @@ export function renderHtml(p: EmailParts) {
       </td></tr>
       <tr><td align="center" class="t-text" style="padding:22px 16px 0;font:12px/1.6 ${SANS};color:${C.text};">
         <strong>${esc(p.studio.name)} ${esc(p.studio.outlet)}</strong>${p.studio.address ? `<br>${esc(p.studio.address)}` : ''}${contact ? `<br>${esc(contact)}` : ''}
-        <br><span style="color:${C.soft};">You are receiving this email because of your booking with ${esc(p.studio.name)}. Reply to this email to reach the studio.</span>
+        <br><span style="color:${C.soft};">${esc(p.footer ?? `You are receiving this email because of your booking with ${p.studio.name}. Reply to this email to reach the studio.`)}</span>
       </td></tr>
     </table>
   </td></tr>
