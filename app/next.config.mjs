@@ -5,6 +5,8 @@ const API = process.env.API_INTERNAL_URL || 'http://localhost:4000';
 const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
+  // Caddy compresses responses; compressing here too would buffer the live event stream.
+  compress: false,
   reactStrictMode: true,
   async rewrites() {
     return [

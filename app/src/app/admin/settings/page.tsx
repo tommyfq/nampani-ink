@@ -22,6 +22,11 @@ const GROUPS: { title: string; intro?: string; items: { key: string; label: stri
     ],
   },
   {
+    title: 'Staff notifications',
+    intro: 'Pop-ups on staff phones and computers when a booking request arrives from the website. Each person turns them on for their own device in the Inbox.',
+    items: [{ key: 'notify.pushEnabled', label: 'Send browser notifications to staff', kind: 'bool', main: true }],
+  },
+  {
     title: 'WhatsApp messages',
     intro: 'Only owners can change these. When a main switch is off, nothing is sent through that number.',
     items: [

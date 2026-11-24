@@ -37,6 +37,7 @@ const CreateSchema = z.object({
 });
 
 const UpdateSchema = z.object({
+  kind: z.enum(['CONSULTATION', 'TATTOO']).optional(),
   artistId: z.string().uuid().optional(),
   startsAt: iso.optional(),
   endsAt: iso.optional(),

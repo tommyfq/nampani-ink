@@ -12,6 +12,8 @@ import { ContentModule } from './content/content.module';
 import { DbModule } from './db/db.module';
 import { SettingsModule } from './settings/settings.service';
 import { UploadsModule } from './uploads/uploads.module';
+import { NotifyModule } from './notify/notify.service';
+import { RequestsModule } from './requests/requests.controller';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { UploadsModule } from './uploads/uploads.module';
     BookingsModule,
     PaymentsModule,
     MessagesModule,
+    NotifyModule,
+    RequestsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

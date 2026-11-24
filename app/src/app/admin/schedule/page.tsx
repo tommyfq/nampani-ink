@@ -41,6 +41,9 @@ export default function SchedulePage() {
   const [openId, setOpenId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Links like /admin/schedule?date=2026-12-10 (from the inbox) open that day.
+    const d = new URLSearchParams(location.search).get('date');
+    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) setSelected(d);
     api<{ id: string; name: string; code: string }[]>('/admin/outlets')
       .then((list) => {
         setOutlets(list);

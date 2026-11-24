@@ -47,6 +47,10 @@ services:
       CONTENT_FILE: /app/content/studio.json
       UPLOAD_DIR: /app/uploads
       PRIVATE_DIR: /app/private
+      # Browser notifications (Web Push). Generate once: npx web-push generate-vapid-keys
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:studio@nampani.ink}
     volumes:
       # Edit api/content/studio.json on the host; the API picks up changes without a restart.
       - ./api/content:/app/content:ro

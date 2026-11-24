@@ -9,8 +9,9 @@ export type Prefill = { branch?: string; artist?: string; style?: string; placem
 
 const MAX_FILES = 3;
 const MAX_MB = 10;
-// Static GitHub Pages build has no API, so photos are sent in the WhatsApp chat instead.
+// Static GitHub Pages build has no API: the request goes by WhatsApp only and photos are sent in the chat.
 const CAN_UPLOAD = process.env.NEXT_PUBLIC_STATIC_EXPORT !== '1';
+const CAN_SAVE = CAN_UPLOAD;
 
 type Ref = { file: File; url: string };
 
@@ -23,13 +24,13 @@ type Props = {
 };
 
 /**
- * Booking request form. On submit it uploads any reference photos to the API
- * (so they become links), builds the WhatsApp message and lets the customer
- * open the chat with the studio branch they picked.
+ * Booking request form. On submit it uploads any reference photos, saves the
+ * request in the studio system (staff get a notification in the POS inbox) and
+ * offers WhatsApp with the request code for a faster reply.
  */
 export function BookingForm({ studio, branches, artists, styles, defaults = {} }: Props) {
   const [values, setValues] = useState({
-    name: '', phone: '', branch: defaults.branch ?? '', artist: defaults.artist ?? '', style: defaults.style ?? '',
+    name: '', phone: '', email: '', website: '', branch: defaults.branch ?? '', artist: defaults.artist ?? '', style: defaults.style ?? '',
     date: '', placement: defaults.placement ?? '', size: defaults.size ?? '', message: '', design: defaults.design ?? '',
   });
   const [refs, setRefs] = useState<Ref[]>([]);
@@ -37,6 +38,9 @@ export function BookingForm({ studio, branches, artists, styles, defaults = {} }
   const [invalid, setInvalid] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [sendHref, setSendHref] = useState<string | null>(null);
+  const [news, setNews] = useState(false);
+  const [code, setCode] = useState<string | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [today, setToday] = useState('');
   const refsRef = useRef<Ref[]>([]);
   refsRef.current = refs;
@@ -94,15 +98,37 @@ export function BookingForm({ studio, branches, artists, styles, defaults = {} }
     const res = await fetch('/api/uploads', { method: 'POST', body });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.message || 'Upload failed');
-    return (data.files as { path: string }[]).map((f) => new URL(f.path, window.location.origin).href);
+    return (data.files as { path: string }[]).map((f) => f.path);
   }
 
-  function buildMessage(photoLinks: string[]) {
+  /** Saves the request in the studio system. Returns the booking code, or throws with a readable message. */
+  async function saveRequest(photos: string[]): Promise<string | null> {
+    const res = await fetch('/api/requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        studio: values.branch, artist: values.artist, style: values.style, name: values.name, phone: values.phone,
+        email: values.email, preferredDate: values.date, placement: values.placement, size: values.size,
+        idea: values.message, design: values.design, photos, newsOptIn: news, website: values.website,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const issue = data?.issues?.[0];
+      const err = new Error(issue?.message || (res.status === 429 ? 'Too many requests, please try again in a few minutes.' : data?.message || 'Could not send'));
+      (err as Error & { field?: string }).field = issue?.path;
+      throw err;
+    }
+    return data.code ?? null;
+  }
+
+  function buildMessage(photoLinks: string[], requestCode: string | null) {
     const b = branches.find((x) => x.id === values.branch)!;
     const a = artists.find((x) => x.id === values.artist);
     const s = styles.find((x) => x.id === values.style);
     const lines = [`Hi ${studio.name} ${b.name}! I'd like to book a tattoo.`, ''];
     const add = (k: string, v?: string) => v && lines.push(`*${k}:* ${v}`);
+    if (requestCode) add('Request code', requestCode);
     add('Name', values.name);
     add('WhatsApp', values.phone);
     add('Studio', b.name);
@@ -128,14 +154,48 @@ export function BookingForm({ studio, branches, artists, styles, defaults = {} }
       return;
     }
     setBusy(true);
+    let paths: string[] = [];
     try {
-      const links = await uploadRefs();
-      const b = branches.find((x) => x.id === values.branch)!;
-      setSendHref(waLink(b.whatsapp, buildMessage(links)));
+      paths = await uploadRefs();
     } catch (err) {
       setError(`We couldn't upload your photos (${(err as Error).message}). Remove them and try again, or send them in the WhatsApp chat.`);
-    } finally {
       setBusy(false);
+      return;
+    }
+    let saved: string | null = null;
+    let failed = false;
+    if (CAN_SAVE) {
+      try {
+        saved = await saveRequest(paths);
+      } catch (err) {
+        const field = (err as Error & { field?: string }).field;
+        // A mistake the customer can fix: show it on the form. Anything else: WhatsApp still works.
+        if (field && ['phone', 'email', 'name', 'studio'].includes(field)) {
+          setError((err as Error).message);
+          setInvalid([field === 'studio' ? 'branch' : field]);
+          document.getElementById(`f-${field === 'studio' ? 'branch' : field}`)?.focus();
+          setBusy(false);
+          return;
+        }
+        failed = true;
+      }
+    }
+    const b = branches.find((x) => x.id === values.branch)!;
+    const links = paths.map((p) => new URL(p, window.location.origin).href);
+    setCode(saved);
+    setSaveFailed(failed);
+    setSendHref(waLink(b.whatsapp, buildMessage(links, saved)));
+    setBusy(false);
+  }
+
+  function closeSent() {
+    setSendHref(null);
+    if (code) {
+      // Saved: clear the form so the same request isn't sent twice.
+      refs.forEach((r) => URL.revokeObjectURL(r.url));
+      setRefs([]);
+      setValues((v) => ({ ...v, message: '', placement: '', size: '', date: '', design: '' }));
+      setCode(null);
     }
   }
 
@@ -149,8 +209,9 @@ export function BookingForm({ studio, branches, artists, styles, defaults = {} }
         <p className="label">Book a session</p>
         <h2 id="book-title">Tell us what you want to carry.</h2>
         <p>
-          Fill this in and it opens WhatsApp with everything ready to send to the studio you choose.
-          {CAN_UPLOAD ? ' Reference photos are attached as links.' : ' Send your reference photos in the chat.'}
+          {CAN_SAVE
+            ? 'Send your request and the studio will reply on WhatsApp. For a faster answer you can also open the chat with everything filled in.'
+            : 'Fill this in and it opens WhatsApp with everything ready to send to the studio you choose. Send your reference photos in the chat.'}
         </p>
         <ul className="contact-list">
           <li><strong>WhatsApp</strong><a href={waLink(studio.whatsapp, `Hi ${studio.name}!`)} target="_blank" rel="noopener">+{studio.whatsapp}</a></li>
@@ -161,7 +222,12 @@ export function BookingForm({ studio, branches, artists, styles, defaults = {} }
 
       <form className="book-form" onSubmit={onSubmit} noValidate>
         <div className="field"><label htmlFor="f-name">Name*</label><input id="f-name" name="name" autoComplete="name" required value={values.name} onChange={set('name')} {...bad('name')} /></div>
-        <div className="field"><label htmlFor="f-phone">WhatsApp number*</label><input id="f-phone" name="phone" type="tel" autoComplete="tel" placeholder="+62…" required value={values.phone} onChange={set('phone')} {...bad('phone')} /></div>
+        <div className="field"><label htmlFor="f-phone">WhatsApp number*</label><input id="f-phone" name="phone" type="tel" autoComplete="tel" placeholder="+62… or +61…" required value={values.phone} onChange={set('phone')} {...bad('phone')} /></div>
+        {CAN_SAVE && (
+          <div className="field"><label htmlFor="f-email">Email</label><input id="f-email" name="email" type="email" autoComplete="email" placeholder="For your confirmation and receipts" value={values.email} onChange={set('email')} {...bad('email')} /></div>
+        )}
+        {/* Honeypot for bots: hidden from people and screen readers. */}
+        <div className="hp" aria-hidden="true"><label htmlFor="f-website">Website</label><input id="f-website" name="website" tabIndex={-1} autoComplete="off" value={values.website} onChange={set('website')} /></div>
         <div className="field">
           <label htmlFor="f-branch">Studio*</label>
           <select id="f-branch" name="branch" required value={values.branch} onChange={set('branch')} {...bad('branch')}>
@@ -217,23 +283,52 @@ export function BookingForm({ studio, branches, artists, styles, defaults = {} }
             <button type="button" onClick={() => setValues((v) => ({ ...v, design: '' }))}>Remove</button>
           </div>
         )}
+        {CAN_SAVE && (
+          <label className="field full check">
+            <input type="checkbox" checked={news} onChange={(e) => setNews(e.target.checked)} />
+            <span>Send me news and flash tattoo offers from {studio.name}. You can unsubscribe at any time.</span>
+          </label>
+        )}
         {error && <p className="form-error full" role="alert">{error}</p>}
-        <button className="btn btn-sogan full" type="submit" disabled={busy}>{busy ? 'Preparing…' : 'Send via WhatsApp'}</button>
+        <button className="btn btn-sogan full" type="submit" disabled={busy}>{busy ? 'Sending…' : CAN_SAVE ? 'Send request' : 'Send via WhatsApp'}</button>
       </form>
 
       {sendHref && (
-        <div className="lightbox" role="dialog" aria-modal="true" aria-labelledby="send-title" onClick={(e) => e.target === e.currentTarget && setSendHref(null)}>
+        <div className="lightbox" role="dialog" aria-modal="true" aria-labelledby="send-title" onClick={(e) => e.target === e.currentTarget && closeSent()}>
           <div className="lb-card sheet">
-            <button className="lb-close" aria-label="Close" onClick={() => setSendHref(null)} autoFocus>✕</button>
-            <p className="label">Almost done</p>
-            <h3 id="send-title">Send your request to {branchName}</h3>
-            <ol className="send-steps">
-              <li>
-                <strong>Open the chat with your details</strong>
-                <p>Your message{refs.length ? ' and photo links are' : ' is'} ready — just press send in WhatsApp.</p>
-                <a className="btn btn-sogan" href={sendHref} target="_blank" rel="noopener">Open WhatsApp</a>
-              </li>
-            </ol>
+            <button className="lb-close" aria-label="Close" onClick={closeSent} autoFocus>✕</button>
+            {code ? (
+              <>
+                <p className="label">Request sent</p>
+                <h3 id="send-title">Thank you, {values.name.split(' ')[0]}.</h3>
+                <ol className="send-steps">
+                  <li>
+                    <strong>Your request code: {code}</strong>
+                    <p>{branchName} has your request and will reply on WhatsApp.</p>
+                  </li>
+                  <li>
+                    <strong>Want a faster answer?</strong>
+                    <p>Open the chat with your details and code already filled in.</p>
+                    <a className="btn btn-line" href={sendHref} target="_blank" rel="noopener">Open WhatsApp</a>
+                  </li>
+                </ol>
+              </>
+            ) : (
+              <>
+                <p className="label">Almost done</p>
+                <h3 id="send-title">Send your request to {branchName}</h3>
+                <ol className="send-steps">
+                  <li>
+                    <strong>Open the chat with your details</strong>
+                    <p>
+                      {saveFailed ? 'We couldn\'t save your request online just now, so please send it on WhatsApp. ' : ''}
+                      Your message{refs.length ? ' and photo links are' : ' is'} ready — just press send in WhatsApp.
+                    </p>
+                    <a className="btn btn-sogan" href={sendHref} target="_blank" rel="noopener">Open WhatsApp</a>
+                  </li>
+                </ol>
+              </>
+            )}
           </div>
         </div>
       )}

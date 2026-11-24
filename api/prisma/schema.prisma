@@ -79,6 +79,7 @@ model User {
   paymentsTaken  Payment[]           @relation("PaymentReceivedBy")
   paymentsVoided Payment[]           @relation("PaymentVoidedBy")
   messagesSent   MessageLog[]
+  pushDevices    PushSubscription[]
 }
 
 model UserOutlet {
@@ -370,6 +371,10 @@ model Booking {
   idea        String        @default("")
   notes       String        @default("") // internal
   quotedPrice BigInt? // Rupiah
+  // Website request details (source WEBSITE)
+  preferredDate String   @default("") // YYYY-MM-DD the customer asked for
+  design        String   @default("") // gallery design code the customer picked
+  photos        String[] @default([]) // reference photo paths (/uploads/references/…)
   parentId    String?       @db.Uuid // tattoo appointment made from a consultation
   createdById String?       @db.Uuid
   createdAt   DateTime      @default(now()) @db.Timestamptz
@@ -493,4 +498,19 @@ model AuditLog {
   user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([at])
+}
+
+/// A browser that receives staff notifications (Web Push), one row per device.
+model PushSubscription {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  endpoint   String   @unique
+  p256dh     String
+  auth       String
+  userAgent  String   @default("")
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  lastUsedAt DateTime @default(now()) @db.Timestamptz
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

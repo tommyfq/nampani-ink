@@ -298,6 +298,10 @@ main { padding-top: var(--bar); }
 .design-chip { flex-direction: row; align-items: center; justify-content: space-between; background: var(--mori-2); padding: 10px 14px; font-size: 14px; }
 .design-chip button { background: none; border: 0; color: var(--muted); font-size: 13px; text-decoration: underline; }
 .form-error { color: #a4442c; font-size: 14px; }
+.field.check { flex-direction: row; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--muted); cursor: pointer; }
+.field.check input { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--sogan); flex: none; }
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.send-steps { display: grid; gap: 10px; }
 
 /* ---------- 11. FAQ ---------- */
 .faq-list { border-top: 1px solid var(--mori-3); max-width: 920px; }

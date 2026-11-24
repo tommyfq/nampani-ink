@@ -178,6 +178,8 @@ export const SETTINGS = {
   'reminder.windowStart': { schema: time, default: '08:00' },
   'reminder.windowEnd': { schema: time, default: '20:00' },
   'investor.payoutPeriodDays': { schema: z.number().int().min(1).max(366), default: 30 },
+  // Browser notifications to staff devices (owner only). Each person still turns them on per device.
+  'notify.pushEnabled': { schema: z.boolean(), default: true },
   // Main WhatsApp switches (owner only). Off until Convia / the internal number are connected.
   'whatsapp.customerEnabled': { schema: z.boolean(), default: false },
   'whatsapp.internalEnabled': { schema: z.boolean(), default: false },

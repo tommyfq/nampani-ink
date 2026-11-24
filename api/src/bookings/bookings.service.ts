@@ -31,6 +31,7 @@ export interface CreateBookingInput {
 }
 
 export interface UpdateBookingInput {
+  kind?: BookingKind;
   artistId?: string;
   startsAt?: string;
   endsAt?: string;
@@ -94,7 +95,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
   // ---------------------------------------------------------------- numbering
 
   /** Next booking code for an outlet: NPI-CGU-26-00042 (gap-free per outlet and year). */
-  private async nextCode(tx: Prisma.TransactionClient, outletId: string, outletCode: string) {
+  async nextCode(tx: Prisma.TransactionClient, outletId: string, outletCode: string) {
     const year = new Date().getUTCFullYear();
     const rows = await tx.$queryRaw<{ lastValue: number }[]>`
       INSERT INTO "NumberSequence" ("outletId", "kind", "year", "lastValue")
@@ -202,6 +203,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
     if (!current) throw new NotFoundException('Booking not found');
     this.assertOutlet(user, current.outletId);
     if (['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(current.status)) throw new BadRequestException('This booking is closed and cannot be changed');
+    if (input.kind && input.kind !== current.kind && current.status !== 'REQUESTED') throw new BadRequestException('Only a website request can change between consultation and tattoo');
 
     const moving = input.startsAt !== undefined || input.endsAt !== undefined || input.artistId !== undefined;
     let artistName = 'This artist';

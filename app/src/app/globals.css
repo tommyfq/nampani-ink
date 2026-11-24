@@ -80,8 +80,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid #c9b79c; border-c
 .login .brand { color: var(--ink); padding: 0; font-size: 26px; text-align: center; }
 
 @media (max-width: 800px) {
-  .shell { grid-template-columns: 1fr; }
-  .side { flex-direction: row; flex-wrap: wrap; padding: 10px; }
+  .shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .side { flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px; }
   .side .group, .side .who-text { display: none; }
   .side .who { margin: 0 0 0 auto; padding: 0; border: 0; }
   .side .who button { margin: 0; }
@@ -160,3 +160,19 @@ button.slotbtn:hover { outline: 2px solid #c9b79c; }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 .tabs button { border: 1px solid var(--line); background: var(--panel); border-radius: 99px; padding: 6px 14px; font: 13px var(--f); cursor: pointer; color: var(--muted); }
 .tabs button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* Inbox */
+.side a .badge { display: inline-block; margin-left: 6px; min-width: 20px; padding: 0 6px; border-radius: 99px; background: #c9784f; color: #fff; font-size: 11px; line-height: 20px; text-align: center; }
+.req.focus { border-color: var(--accent); box-shadow: 0 0 0 3px #79594326; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 16px; margin: 14px 0 0; }
+.facts div { min-width: 0; }
+.facts dt { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.facts dd { margin: 0; overflow-wrap: anywhere; }
+.idea { margin: 12px 0 0; padding: 10px 12px; background: #f5efe3; border-radius: var(--radius); white-space: pre-wrap; overflow-wrap: anywhere; }
+.refs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.refs img { width: 96px; height: 96px; object-fit: cover; border-radius: var(--radius); border: 1px solid var(--line); display: block; }
+.inline-form { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.inline-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.grid-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.notify.on { border-color: #b9cfa0; background: #f3f7ec; }
+.notify.denied, .notify.unavailable { border-color: #ecc3b8; }

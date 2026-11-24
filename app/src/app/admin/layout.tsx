@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LiveProvider, useLive } from '@/components/Live';
 import { SessionProvider, useMe } from '@/components/Session';
 import { api, Role } from '@/lib/api';
 
@@ -10,6 +11,7 @@ const NAV: { group: string; items: { href: string; label: string; roles: Role[] 
     group: 'Studio',
     items: [
       { href: '/admin', label: 'Overview', roles: ['OWNER', 'MANAGER', 'FRONT_DESK', 'ARTIST'] },
+      { href: '/admin/inbox', label: 'Inbox', roles: ['OWNER', 'MANAGER', 'FRONT_DESK'] },
       { href: '/admin/schedule', label: 'Schedule', roles: ['OWNER', 'MANAGER', 'FRONT_DESK', 'ARTIST'] },
       { href: '/admin/messages', label: 'WhatsApp messages', roles: ['OWNER', 'MANAGER', 'FRONT_DESK'] },
       { href: '/admin/outlets', label: 'Outlets', roles: ['OWNER'] },
@@ -41,6 +43,7 @@ const NAV: { group: string; items: { href: string; label: string; roles: Role[] 
 function Shell({ children }: { children: React.ReactNode }) {
   const me = useMe()!;
   const path = usePathname();
+  const { inboxCount } = useLive();
   async function logout() {
     await api('/auth/logout', { method: 'POST' }).catch(() => undefined);
     location.href = '/login';
@@ -58,6 +61,7 @@ function Shell({ children }: { children: React.ReactNode }) {
               {items.map((i) => (
                 <Link key={i.href} href={i.href} className={path === i.href ? 'on' : ''}>
                   {i.label}
+                  {i.href === '/admin/inbox' && inboxCount > 0 && <span className="badge" aria-label={`${inboxCount} open`}>{inboxCount}</span>}
                 </Link>
               ))}
             </div>
@@ -81,7 +85,9 @@ function Shell({ children }: { children: React.ReactNode }) {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <Shell>{children}</Shell>
+      <LiveProvider>
+        <Shell>{children}</Shell>
+      </LiveProvider>
     </SessionProvider>
   );
 }
