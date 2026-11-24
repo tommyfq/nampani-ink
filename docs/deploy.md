@@ -9,7 +9,7 @@ Only Caddy is public (ports 80/443). Website and POS listen on 127.0.0.1 only.
 ## Update the server with the latest code (from the Mac, in the project folder)
 
 ```bash
-rsync -az --delete --exclude .git/ --exclude node_modules/ --exclude .next/ --exclude out/ --exclude dist/ --exclude .env --exclude api/.env --exclude api/private/ --exclude api/uploads/ --exclude .DS_Store ./ deploy@177.202.250.213:/usr/share/docker/nampani-ink/
+rsync -az --delete --exclude .git/ --exclude node_modules/ --exclude .next/ --exclude out/ --exclude dist/ --exclude .env --exclude 'api/.env' --exclude '.env.bak-*' --exclude api/private/ --exclude api/uploads/ --exclude .DS_Store ./ deploy@177.202.250.213:/usr/share/docker/nampani-ink/
 ```
 
 ```bash

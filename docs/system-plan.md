@@ -62,7 +62,7 @@ work for little benefit. URLs: `pos.nampani.ink/admin/...` (POS and Admin screen
 | Shared types | `packages/shared` (Zod schemas) | One definition of a booking used by API and all apps |
 | Payments | Midtrans **or** Xendit | QRIS, bank virtual account, local and foreign cards, payment links, webhooks |
 | WhatsApp | Phase 1: `wa.me` links (free). Phase 2: WhatsApp Cloud API | Automated confirmations and reminders |
-| Email | Nodemailer over Hostinger SMTP (`noreply@nampani.ink`) | Customer notifications and receipts until (and alongside) WhatsApp automation |
+| Email | Nodemailer over Hostinger SMTP (`studio@nampani.ink`); marketing through MailerLite (`news@nampani.ink`) | Customer notifications and receipts until (and alongside) WhatsApp automation; newsletters kept separate |
 | Files | Docker volume → Cloudflare R2 later | Reference photos, consent signatures, gallery images |
 | Logs / monitoring | Pino JSON logs + Dozzle, Uptime Kuma | Light enough for one VPS |
 
@@ -328,7 +328,7 @@ transactions once it is switched on.
 | Week | Dates | Build | Done when |
 |---|---|---|---|
 | **1** | Mon 23 – Sun 29 Nov | **Foundation + Admin.** VPS, Docker, Caddy, Cloudflare, mail records, backups, deploy. Database schema, logins and roles, outlets, staff, artists and shifts, styles, gallery, FAQs in Admin. Settings: payment methods + fee %, revenue schemes, DP %, discount limit. Landing page on the real domain reading from the database | Owners log in to Admin and edit the website |
-| **2** | Mon 30 Nov – Sun 6 Dec | **Booking + POS.** Consultation form (website + WhatsApp branch), customers, consultation and appointment statuses, artist calendar, double-booking guard, walk-ins, auto-cancel after no-show. DP 10% and final payment with proof (card approval code, transfer photo, cash), discounts, receipts sent by hand with a WhatsApp button, cash drawer, end-of-day. **Email notifications** from `noreply@nampani.ink` (request received, booking confirmed, DP receipt, reminder, final receipt) with owner on/off switches and templates in the landing-page design (by Wed 2 Dec) | **MVP soft launch Sat 5 Dec**: staff take real bookings and payments; customers get emails automatically |
+| **2** | Mon 30 Nov – Sun 6 Dec | **Booking + POS.** Consultation form (website + WhatsApp branch), customers, consultation and appointment statuses, artist calendar, double-booking guard, walk-ins, auto-cancel after no-show. DP 10% and final payment with proof (card approval code, transfer photo, cash), discounts, receipts sent by hand with a WhatsApp button, cash drawer, end-of-day. **Email notifications** from `studio@nampani.ink` (request received, booking confirmed, DP receipt, reminder, final receipt) with owner on/off switches and templates in the landing-page design; "send me news" opt-in checkbox on the booking form (by Wed 2 Dec) | **MVP soft launch Sat 5 Dec**: staff take real bookings and payments; customers get emails automatically |
 | **3** | Mon 7 – Sun 13 Dec | **Revenue sharing** engine (split per transaction, Tutut rule, forfeited DP, card fee to Operational) | Every payment shows its split |
 | **4** | Mon 14 – Fri 18 Dec | **Reports + finish.** Products with stock and purchase cost, artist payouts per period, mark shares paid, investor PDF, sales and bank reports, CSV export. Full test with staff, fixes, training | **Go-live Fri 18 Dec** |
 | After go-live | Sat 19 – Wed 23 Dec | **WhatsApp automation.** Convia send + webhook receive (messages saved), 16-hour reminders with Confirm / Reschedule, DP receipt + confirmation, final receipt, free-or-paid choice, on/off switches. Baileys internal number for the artist group. Owner chooses per message: email, WhatsApp or both | Reminders and receipts go out on WhatsApp automatically |
@@ -340,7 +340,7 @@ transactions once it is switched on.
 |---|---|---|
 | Tue 24 Nov | Owners | Pay the DP; buy VPS, domain, mail hosting, Convia |
 | Wed 25 Nov | Owners | Start Meta Business verification and connect the Nampani Ink number to Convia |
-| Thu 26 Nov | Owners | Buy Hostinger email; create `noreply@nampani.ink` (and `hello@nampani.ink`); enter the SMTP password on the server |
+| Thu 26 Nov | Owners | Buy Hostinger email with 4 mailboxes: `studio@`, `jensen@`, `tutut@`, `news@nampani.ink`; enter the `studio@` SMTP password on the server |
 | Fri 27 Nov | Owners | Real content: artists, styles, photos, prices, outlet details |
 | Sun 29 Nov | Owners | SIM card + phone for the internal Baileys number |
 | Fri 4 Dec | Staff | One staff member tests the POS for a day |
@@ -356,7 +356,7 @@ transactions once it is switched on.
 | Open questions not answered by 7 Dec | Ship with sensible defaults (settings in Admin) and adjust later |
 | Bugs found in staff testing | 19 Dec – 3 Jan buffer, covered by free maintenance |
 
-**Later, not in this invoice:** Instagram → website gallery sync ([plan](instagram-sync-plan.md)), digital consent form, online DP payment links, more outlets, customer accounts.
+**Later, not in this invoice:** marketing campaigns in MailerLite (opted-in customers exported from Admin), Instagram → website gallery sync ([plan](instagram-sync-plan.md)), digital consent form, online DP payment links, more outlets, customer accounts.
 
 ---
 
@@ -393,9 +393,11 @@ transactions once it is switched on.
 | Payments | Tattoo DP confirms the booking; the final payment completes it. Discounts by front desk need a manager/owner PIN. Payments can only be voided by managers/owners, with a reason |
 | WhatsApp on/off | **Owner only.** Two main switches in Admin → Settings: customer messages (Convia) and artist messages (internal number). Both start **off**. Per-message switches (consultation reminder, DP confirmation, appointment reminder, receipt) only apply while customer messages are on |
 | Internal messages | Artist reminders and schedule changes go through **Baileys on a separate WhatsApp number** (internal group + each artist); never used for customers |
-| Email notifications | **Automatic by email until the WhatsApp API is live**, then kept alongside it. Sent from **`noreply@nampani.ink`** through Hostinger Mail (SMTP); replies go to `hello@nampani.ink`. Emails: booking request received (customer + studio alert), booking confirmed, DP receipt (PDF attached), reminder 16 hours before (08:00–20:00), final receipt (PDF attached). Only sent when the customer gave an email (optional on the booking form) |
+| Email notifications | **Automatic by email until the WhatsApp API is live**, then kept alongside it. Sent from **"Nampani Ink" `<studio@nampani.ink>`** through Hostinger Mail (SMTP), so customer replies land in the studio inbox (no `noreply`). Emails: booking request received (customer + studio alert), booking confirmed, DP receipt (PDF attached), reminder 16 hours before (08:00–20:00), final receipt (PDF attached). Only sent when the customer gave an email (optional on the booking form) |
 | Email on/off | **Owner only**, like WhatsApp: a main switch in Admin → Settings plus a switch per email. Starts **off** until the domain's SPF, DKIM and DMARC records are checked |
 | Email design | Templates follow the **landing-page design** (Nampani Ink colours, fonts and logo), work on phones and in dark mode, Bahasa Indonesia or English per customer. Owner edits the wording in Admin |
+| Mailboxes | **4 on Hostinger Mail.** `studio@nampani.ink`: main studio inbox, shown on the website, and the sender of all automatic emails. `jensen@` and `tutut@`: owners. `news@nampani.ink`: marketing only |
+| Marketing email | Sent through a newsletter service (**MailerLite**, free up to 1,000 subscribers) from "Nampani Ink" `<news@nampani.ink>`, replies to `studio@`. Never sent from the Hostinger mailboxes, so spam complaints on promotions can't hurt receipts and reminders. Only customers who ticked **"send me news"** (`marketing_opt_in`); every email has an unsubscribe link and the studio address (Australian Spam Act, Indonesian UU PDP) |
 
 ### Revenue sharing (tattoo services)
 
