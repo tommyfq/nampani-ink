@@ -51,6 +51,14 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:studio@nampani.ink}
+      # Email through Hostinger Mail. Empty SMTP_HOST = emails are skipped (logged in Admin → Emails).
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-Nampani Ink <studio@nampani.ink>}
+      MAIL_STUDIO_TO: ${MAIL_STUDIO_TO:-studio@nampani.ink}
+      POS_URL: ${POS_URL:-https://pos.nampani.ink}
     volumes:
       # Edit api/content/studio.json on the host; the API picks up changes without a restart.
       - ./api/content:/app/content:ro

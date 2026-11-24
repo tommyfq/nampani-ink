@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { BookingKind, BookingSource, BookingStatus, Prisma } from '@prisma/client';
 import { SessionUser } from '../common/auth.decorators';
 import { PrismaService } from '../db/prisma.service';
+import { MailService } from '../mail/mail.service';
 import { SettingsService } from '../settings/settings.service';
 import { localParts, normalizePhone, REOPEN_ROLES, TRANSITIONS } from './booking.rules';
 
@@ -60,6 +61,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
+    private readonly mail: MailService,
   ) {}
 
   // ---------------------------------------------------------------- access
@@ -162,7 +164,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
 
     let artistName = 'This artist';
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      const created = await this.prisma.$transaction(async (tx) => {
         const artist = await this.checkAvailability(tx, { artistId: input.artistId, outletId: outlet.id, start, end, allowOutsideShift: Boolean(input.allowOutsideShift), user });
         artistName = artist.displayName;
         const customer = await this.resolveCustomer(input.customer, tx);
@@ -193,6 +195,8 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
         });
         return booking;
       });
+      if (created.source !== 'WALK_IN') this.mail.later(() => this.mail.bookingScheduled(created.id));
+      return created;
     } catch (err) {
       this.overlapError(err, artistName);
     }
@@ -208,7 +212,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
     const moving = input.startsAt !== undefined || input.endsAt !== undefined || input.artistId !== undefined;
     let artistName = 'This artist';
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      const updated = await this.prisma.$transaction(async (tx) => {
         let range: { start: Date; end: Date } | undefined;
         const artistId = input.artistId ?? current.artistId;
         if (moving) {
@@ -239,6 +243,9 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
         });
         return booking;
       });
+      // Scheduled from a request, or moved to a new time: the customer gets the (new) details.
+      if (moving) this.mail.later(() => this.mail.bookingScheduled(updated.id));
+      return updated;
     } catch (err) {
       this.overlapError(err, artistName);
     }

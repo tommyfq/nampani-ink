@@ -31,7 +31,7 @@ import { ZodPipe } from '../common/zod.pipe';
 import { PrismaService } from '../db/prisma.service';
 import { sniff, UPLOAD_DIR } from '../uploads/uploads.service';
 import { PaymentsService } from './payments.service';
-import { renderReceipt } from './receipt.pdf';
+import { buildReceipt } from './receipt.data';
 
 /** Private files (payment proofs). Never served by the public /uploads route. */
 export const PRIVATE_DIR = resolve(process.env.PRIVATE_DIR ?? join(UPLOAD_DIR, '..', 'private'));
@@ -118,49 +118,10 @@ export class PaymentsController {
   /** A4 receipt (kuitansi) PDF in Bahasa Indonesia. */
   @Get('payments/:id/receipt')
   async receipt(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: SessionUser, @Res({ passthrough: true }) res: Response) {
-    const p = await this.prisma.payment.findUnique({
-      where: { id },
-      include: {
-        receivedBy: { select: { name: true } },
-        booking: {
-          include: {
-            outlet: true,
-            customer: true,
-            artist: { select: { displayName: true } },
-            style: { select: { name: true } },
-            payments: { where: { voidedAt: null, kind: 'DP' }, orderBy: { paidAt: 'asc' } },
-          },
-        },
-      },
-    });
-    if (!p) throw new NotFoundException('Payment not found');
-    if (user.role !== 'OWNER' && !user.outletIds.includes(p.outletId)) throw new ForbiddenException();
-    const b = p.booking;
-    const studio = await this.prisma.siteSetting.findUnique({ where: { key: 'studio' } });
-    const studioName = (studio?.value as { name?: string } | null)?.name ?? 'Nampani Ink';
-    const pdf = await renderReceipt({
-      studioName,
-      outlet: { name: b.outlet.name, street: b.outlet.street, locality: b.outlet.locality, region: b.outlet.region, whatsapp: b.outlet.whatsapp, receiptFooter: b.outlet.receiptFooter },
-      receiptNo: p.receiptNo,
-      paidAt: p.paidAt,
-      timezone: b.outlet.timezone,
-      kind: p.kind,
-      bookingCode: b.code,
-      customer: { name: b.customer.name, phone: b.customer.phone },
-      artist: b.artist?.displayName ?? '-',
-      tattoo: [b.style?.name, b.placement, b.size].filter(Boolean).join(' · '),
-      appointment: b.startsAt,
-      subtotal: p.subtotal,
-      discount: p.discount,
-      discountPct: p.subtotal > 0n ? Math.round((Number(p.discount) * 10000) / Number(p.subtotal)) / 100 : 0,
-      dpPaidBefore: p.kind === 'FINAL' ? b.payments.map((d) => ({ receiptNo: d.receiptNo, amount: d.amount })) : [],
-      amount: p.amount,
-      remainingAfterDp: p.kind === 'DP' ? p.subtotal - p.amount : null,
-      method: p.methodName,
-      approvalCode: p.approvalCode,
-      receivedBy: p.receivedBy?.name ?? '-',
-      voided: p.voidedAt ? { at: p.voidedAt, reason: p.voidReason } : null,
-    });
+    const r = await buildReceipt(this.prisma, id);
+    if (!r) throw new NotFoundException('Payment not found');
+    if (user.role !== 'OWNER' && !user.outletIds.includes(r.outletId)) throw new ForbiddenException();
+    const { pdf, p } = r;
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="Kuitansi-${p.receiptNo}.pdf"`, 'Cache-Control': 'private, no-store' });
     return new StreamableFile(pdf);
   }

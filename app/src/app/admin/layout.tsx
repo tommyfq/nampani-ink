@@ -14,6 +14,7 @@ const NAV: { group: string; items: { href: string; label: string; roles: Role[] 
       { href: '/admin/inbox', label: 'Inbox', roles: ['OWNER', 'MANAGER', 'FRONT_DESK'] },
       { href: '/admin/schedule', label: 'Schedule', roles: ['OWNER', 'MANAGER', 'FRONT_DESK', 'ARTIST'] },
       { href: '/admin/messages', label: 'WhatsApp messages', roles: ['OWNER', 'MANAGER', 'FRONT_DESK'] },
+      { href: '/admin/emails', label: 'Emails', roles: ['OWNER', 'MANAGER'] },
       { href: '/admin/outlets', label: 'Outlets', roles: ['OWNER'] },
       { href: '/admin/users', label: 'Staff', roles: ['OWNER'] },
       { href: '/admin/artists', label: 'Artists', roles: ['OWNER', 'MANAGER'] },

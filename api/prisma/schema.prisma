@@ -390,6 +390,7 @@ model Booking {
   events    BookingEvent[]
   payments  Payment[]
   messages  MessageLog[]
+  emails    EmailLog[]
 
   @@index([outletId, startsAt])
   @@index([artistId, startsAt])
@@ -513,4 +514,24 @@ model PushSubscription {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+/// Every automatic email: what was sent, to whom, and whether it worked. `key` stops duplicates.
+model EmailLog {
+  id        String    @id @default(uuid()) @db.Uuid
+  type      String // requestReceived | studioAlert | bookingConfirmed | dpReceipt | reminder | finalReceipt | test
+  key       String    @unique
+  to        String
+  subject   String
+  status    String // SENT | FAILED | SKIPPED
+  error     String    @default("")
+  attempts  Int       @default(1)
+  bookingId String?   @db.Uuid
+  paymentId String?   @db.Uuid
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  sentAt    DateTime? @db.Timestamptz
+  booking   Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([bookingId])
 }

@@ -176,3 +176,11 @@ button.slotbtn:hover { outline: 2px solid #c9b79c; }
 .grid-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .notify.on { border-color: #b9cfa0; background: #f3f7ec; }
 .notify.denied, .notify.unavailable { border-color: #ecc3b8; }
+
+/* Emails */
+.pill.ok { background: #e3eed6; color: var(--ok); }
+.drawer.wide { width: min(1100px, 100vw); }
+.email-edit { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; align-items: start; }
+.email-edit input, .email-edit textarea { margin-top: 4px; }
+.email-preview { width: 100%; height: 640px; border: 1px solid var(--line); border-radius: var(--radius); background: #f1eadb; }
+@media (max-width: 900px) { .email-edit { grid-template-columns: 1fr; } .email-preview { height: 520px; } }

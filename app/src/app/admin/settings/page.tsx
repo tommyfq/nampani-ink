@@ -22,6 +22,19 @@ const GROUPS: { title: string; intro?: string; items: { key: string; label: stri
     ],
   },
   {
+    title: 'Emails to customers',
+    intro: 'Sent from studio@nampani.ink in English. Customers only get emails when they gave an email address. Edit the wording, preview and send a test in Admin → Emails.',
+    items: [
+      { key: 'email.enabled', label: 'Send emails', kind: 'bool', main: true },
+      { key: 'email.requestReceived', label: 'Request received (website form)', kind: 'bool', dependsOn: 'email.enabled' },
+      { key: 'email.studioAlert', label: 'New request alert to the studio inbox', kind: 'bool', dependsOn: 'email.enabled' },
+      { key: 'email.bookingConfirmed', label: 'Booking confirmed / new time', kind: 'bool', dependsOn: 'email.enabled' },
+      { key: 'email.dpReceipt', label: 'Deposit (DP) receipt with PDF', kind: 'bool', dependsOn: 'email.enabled' },
+      { key: 'email.reminder', label: 'Reminder before the appointment', kind: 'bool', dependsOn: 'email.enabled' },
+      { key: 'email.finalReceipt', label: 'Final receipt with PDF', kind: 'bool', dependsOn: 'email.enabled' },
+    ],
+  },
+  {
     title: 'Staff notifications',
     intro: 'Pop-ups on staff phones and computers when a booking request arrives from the website. Each person turns them on for their own device in the Inbox.',
     items: [{ key: 'notify.pushEnabled', label: 'Send browser notifications to staff', kind: 'bool', main: true }],

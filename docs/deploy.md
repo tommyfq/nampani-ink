@@ -9,7 +9,7 @@ Only Caddy is public (ports 80/443). Website and POS listen on 127.0.0.1 only.
 ## Update the server with the latest code (from the Mac, in the project folder)
 
 ```bash
-rsync -az --delete --exclude .git/ --exclude node_modules/ --exclude .next/ --exclude out/ --exclude dist/ --exclude .env --exclude 'api/.env' --exclude '.env.bak-*' --exclude api/private/ --exclude api/uploads/ --exclude .DS_Store ./ deploy@177.202.250.213:/usr/share/docker/nampani-ink/
+rsync -az --delete --exclude .git/ --exclude node_modules/ --exclude .next/ --exclude out/ --exclude dist/ --exclude .env --exclude 'api/.env' --exclude '.env.bak-*' --exclude api/private/ --exclude api/uploads/ --exclude api/mail-outbox/ --exclude .DS_Store ./ deploy@177.202.250.213:/usr/share/docker/nampani-ink/
 ```
 
 ```bash
@@ -47,6 +47,19 @@ COOKIE_SECURE=true
 ```
 
 Then run `docker compose -f docker-compose.yml -f compose.prod.yml up -d`. Caddy gets HTTPS certificates automatically.
+
+## Email (when the studio@nampani.ink mailbox exists)
+
+In `.env` on the server set `SMTP_HOST=smtp.hostinger.com` and `SMTP_PASS=<mailbox password>`
+(type it on the server, never in chat or git), then:
+
+```bash
+docker compose -f docker-compose.yml -f compose.prod.yml up -d api
+```
+
+Then in the POS: Admin → Emails should show **Connected**; send a test, add the SPF/DKIM/DMARC
+records, and switch emails on in Admin → Settings. Without SMTP, emails are skipped and listed as
+"Skipped" in Admin → Emails. On a Mac without SMTP they are saved to `api/mail-outbox/`.
 
 ## Backups
 

@@ -11,6 +11,7 @@ import { AuditInterceptor } from '../common/audit.interceptor';
 import { CurrentUser, Roles, SessionUser } from '../common/auth.decorators';
 import { ZodPipe } from '../common/zod.pipe';
 import { PrismaService } from '../db/prisma.service';
+import { MailService } from '../mail/mail.service';
 import { isPushEndpoint, NotifyService } from '../notify/notify.service';
 
 const text = (max: number) => z.string().trim().max(max);
@@ -41,6 +42,7 @@ export class PublicRequestsController {
     private readonly prisma: PrismaService,
     private readonly bookings: BookingsService,
     private readonly notify: NotifyService,
+    private readonly mail: MailService,
   ) {}
 
   @Post()
@@ -91,6 +93,7 @@ export class PublicRequestsController {
     });
 
     const summary = [style?.name, body.placement].filter(Boolean).join(', ');
+    this.mail.later(() => this.mail.newRequest(booking.id));
     await this.notify.newRequest({ id: booking.id, outletId: outlet.id, code: booking.code, customerName: booking.customer.name, summary });
     return { code: booking.code };
   }

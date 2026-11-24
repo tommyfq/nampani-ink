@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { verifySecret } from '../auth/password';
 import { SessionUser } from '../common/auth.decorators';
 import { PrismaService } from '../db/prisma.service';
+import { MailService } from '../mail/mail.service';
 import { SettingsService } from '../settings/settings.service';
 
 export interface PayInput {
@@ -27,6 +28,7 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
+    private readonly mail: MailService,
   ) {}
 
   async posSettings() {
@@ -83,7 +85,7 @@ export class PaymentsService {
     if (amount <= 0n || amount > b.quotedPrice) throw invalid('amount', 'DP must be more than 0 and not above the quoted price');
     const m = await this.method(input.methodId, b.outletId, input);
 
-    return this.prisma.$transaction(async (tx) => {
+    const saved = await this.prisma.$transaction(async (tx) => {
       const payment = await tx.payment.create({
         data: {
           receiptNo: await this.nextReceipt(tx, b.outletId, b.outlet.code),
@@ -109,6 +111,9 @@ export class PaymentsService {
       }
       return payment;
     });
+    // Receipt email in the background (only if the customer has an email and it is switched on).
+    this.mail.later(() => this.mail.paymentReceipt(saved.id));
+    return saved;
   }
 
   /** Checks a manager / owner PIN for a discount given by front desk. Returns the approver's id. */
@@ -140,7 +145,7 @@ export class PaymentsService {
     if (amount < 0n) throw invalid('subtotal', 'The DP is more than the price after discount');
     const m = await this.method(input.methodId, b.outletId, input);
 
-    return this.prisma.$transaction(async (tx) => {
+    const saved = await this.prisma.$transaction(async (tx) => {
       const payment = await tx.payment.create({
         data: {
           receiptNo: await this.nextReceipt(tx, b.outletId, b.outlet.code),
@@ -166,6 +171,9 @@ export class PaymentsService {
       await tx.bookingEvent.create({ data: { bookingId: b.id, type: 'status', fromStatus: 'CHECKED_IN', toStatus: 'COMPLETED', note: `Paid ${payment.receiptNo}`, userId: user.id } });
       return payment;
     });
+    // Receipt email in the background (only if the customer has an email and it is switched on).
+    this.mail.later(() => this.mail.paymentReceipt(saved.id));
+    return saved;
   }
 
   /** Cancels a payment recorded by mistake (owner / manager). The receipt is kept, marked VOID. */

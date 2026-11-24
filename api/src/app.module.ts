@@ -13,6 +13,8 @@ import { DbModule } from './db/db.module';
 import { SettingsModule } from './settings/settings.service';
 import { UploadsModule } from './uploads/uploads.module';
 import { NotifyModule } from './notify/notify.service';
+import { MailModule } from './mail/mail.service';
+import { MailAdminModule } from './mail/mail.controller';
 import { RequestsModule } from './requests/requests.controller';
 
 @Module({
@@ -30,6 +32,8 @@ import { RequestsModule } from './requests/requests.controller';
     PaymentsModule,
     MessagesModule,
     NotifyModule,
+    MailModule,
+    MailAdminModule,
     RequestsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

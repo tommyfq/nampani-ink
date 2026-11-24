@@ -1,3 +1,4 @@
+import { DEFAULT_TEMPLATES } from '../mail/mail.templates';
 import { z } from 'zod';
 
 export const slug = z
@@ -169,6 +170,11 @@ export const RevenueSchemeSchema = z
     if (s.kind === 'TATTOO' && artist[0] && artist[0].bps > 4500) ctx.addIssue({ code: 'custom', path: ['lines'], message: 'Artist share cannot be above 45%' });
   });
 
+export const emailTemplate = z.object({
+  subject: z.string().trim().min(1, 'Add a subject').max(200),
+  body: z.string().trim().min(1, 'Add the message').max(4000),
+});
+
 /** Known business settings with their validation and default values. */
 export const SETTINGS = {
   'dp.percentBps': { schema: bps(10000), default: 1000 },
@@ -180,6 +186,21 @@ export const SETTINGS = {
   'investor.payoutPeriodDays': { schema: z.number().int().min(1).max(366), default: 30 },
   // Browser notifications to staff devices (owner only). Each person still turns them on per device.
   'notify.pushEnabled': { schema: z.boolean(), default: true },
+  // Email (owner only). Main switch starts off until the mailbox and DNS records are ready.
+  'email.enabled': { schema: z.boolean(), default: false },
+  'email.requestReceived': { schema: z.boolean(), default: true },
+  'email.studioAlert': { schema: z.boolean(), default: true },
+  'email.bookingConfirmed': { schema: z.boolean(), default: true },
+  'email.dpReceipt': { schema: z.boolean(), default: true },
+  'email.reminder': { schema: z.boolean(), default: true },
+  'email.finalReceipt': { schema: z.boolean(), default: true },
+  // Email wording (English). Fields: see EMAIL_FIELDS in mail/mail.templates.ts
+  'emailTemplate.requestReceived': { schema: emailTemplate, default: DEFAULT_TEMPLATES.requestReceived },
+  'emailTemplate.studioAlert': { schema: emailTemplate, default: DEFAULT_TEMPLATES.studioAlert },
+  'emailTemplate.bookingConfirmed': { schema: emailTemplate, default: DEFAULT_TEMPLATES.bookingConfirmed },
+  'emailTemplate.dpReceipt': { schema: emailTemplate, default: DEFAULT_TEMPLATES.dpReceipt },
+  'emailTemplate.reminder': { schema: emailTemplate, default: DEFAULT_TEMPLATES.reminder },
+  'emailTemplate.finalReceipt': { schema: emailTemplate, default: DEFAULT_TEMPLATES.finalReceipt },
   // Main WhatsApp switches (owner only). Off until Convia / the internal number are connected.
   'whatsapp.customerEnabled': { schema: z.boolean(), default: false },
   'whatsapp.internalEnabled': { schema: z.boolean(), default: false },

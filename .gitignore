@@ -11,3 +11,4 @@ next-env.d.ts
 /web/out/
 /api/private/
 /private/
+/api/mail-outbox/
