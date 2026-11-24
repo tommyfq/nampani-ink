@@ -35,13 +35,14 @@ ssh -N -L 3101:127.0.0.1:3001 deploy@177.202.250.213
 
 Then open http://localhost:3101 while that command runs.
 
-## When the domain is ready (.env on the server)
+## Domain settings (.env on the server, live since 24 Nov 2026)
 
 ```
-SITE_URL=https://<domain>
-SITE_ADDRESS=<domain>, www.<domain>
-APP_ADDRESS=pos.<domain>
-APP_ORIGINS=https://pos.<domain>
+SITE_URL=https://nampani.ink
+SITE_ADDRESS=nampani.ink
+WWW_ADDRESS=www.nampani.ink
+APP_ADDRESS=pos.nampani.ink
+APP_ORIGINS=https://pos.nampani.ink
 COOKIE_SECURE=true
 ```
 

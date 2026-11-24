@@ -12,6 +12,7 @@ services:
       - "443:443/udp"
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      WWW_ADDRESS: ${WWW_ADDRESS:-http://www.invalid}
       APP_ADDRESS: ${APP_ADDRESS:-http://pos.invalid}
     volumes:
       # Mount the folder, not the file, so an updated Caddyfile is seen after upload.

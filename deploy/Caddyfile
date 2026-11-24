@@ -1,6 +1,7 @@
 # Nampani Ink reverse proxy. Addresses come from .env:
-#   SITE_ADDRESS=nampani.ink, www.nampani.ink   (public website)
-#   APP_ADDRESS=pos.nampani.ink                 (POS / Admin)
+#   SITE_ADDRESS=nampani.ink        (public website)
+#   WWW_ADDRESS=www.nampani.ink     (redirects to the main address)
+#   APP_ADDRESS=pos.nampani.ink     (POS / Admin)
 # With a real domain Caddy gets and renews HTTPS certificates automatically.
 
 {
@@ -23,6 +24,10 @@
 	reverse_proxy web:3000 {
 		header_up X-Forwarded-For {client_ip}
 	}
+}
+
+{$WWW_ADDRESS} {
+	redir https://{$SITE_ADDRESS}{uri} permanent
 }
 
 {$APP_ADDRESS} {
