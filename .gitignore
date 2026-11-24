@@ -9,3 +9,5 @@ next-env.d.ts
 .DS_Store
 *.tsbuildinfo
 /web/out/
+/api/private/
+/private/

@@ -1,0 +1,26 @@
+# Production on the VPS:
+#   docker compose -f docker-compose.yml -f compose.prod.yml up -d --build
+# Only Caddy faces the internet (80/443, automatic HTTPS). The website and the
+# POS / Admin app listen on 127.0.0.1 only (set WEB_PORT / APP_PORT in .env).
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      APP_ADDRESS: ${APP_ADDRESS:-http://pos.invalid}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:

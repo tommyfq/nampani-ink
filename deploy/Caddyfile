@@ -1,0 +1,15 @@
+# Nampani Ink reverse proxy. Addresses come from .env:
+#   SITE_ADDRESS=nampaniink.com, www.nampaniink.com   (public website)
+#   APP_ADDRESS=pos.nampaniink.com                    (POS / Admin)
+# With a real domain Caddy gets and renews HTTPS certificates automatically.
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+	reverse_proxy web:3000
+}
+
+{$APP_ADDRESS} {
+	encode zstd gzip
+	header Strict-Transport-Security "max-age=31536000"
+	reverse_proxy app:3001
+}

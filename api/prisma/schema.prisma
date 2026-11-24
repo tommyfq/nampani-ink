@@ -1,0 +1,496 @@
+// Nampani Ink — database schema (PostgreSQL).
+// Conventions: money = BigInt Rupiah, percentages = basis points (4500 = 45.00%),
+// times = timestamptz (UTC). Operational rows carry outletId.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Organisation and staff
+// ---------------------------------------------------------------------------
+
+enum Role {
+  OWNER
+  MANAGER
+  FRONT_DESK
+  ARTIST
+}
+
+model Outlet {
+  id            String   @id @default(uuid()) @db.Uuid
+  code          String   @unique // short code used in numbers, e.g. CGU
+  slug          String   @unique // URL id, e.g. canggu
+  name          String
+  badge         String   @default("")
+  area          String   @default("")
+  street        String   @default("")
+  locality      String   @default("")
+  region        String   @default("")
+  postalCode    String   @default("")
+  country       String   @default("ID")
+  lat           Float?
+  lng           Float?
+  mapsUrl       String   @default("")
+  whatsapp      String   @default("") // digits only, e.g. 6281200000001
+  timezone      String   @default("Asia/Makassar")
+  hoursText     String   @default("") // shown on the website
+  opens         String   @default("10:00")
+  closes        String   @default("22:00")
+  intro         String   @default("")
+  receiptFooter String   @default("")
+  sort          Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
+
+  staff          UserOutlet[]
+  artists        Artist[]        @relation("ArtistHomeOutlet")
+  shifts         ArtistShift[]
+  gallery        GalleryItem[]
+  paymentMethods PaymentMethod[]
+  bookings       Booking[]
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  name         String
+  email        String    @unique
+  phone        String    @default("")
+  passwordHash String
+  pinHash      String? // manager PIN for voids/discounts
+  role         Role
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime? @db.Timestamptz
+  createdAt    DateTime  @default(now()) @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @db.Timestamptz
+
+  outlets        UserOutlet[]
+  artist         Artist?
+  auditLogs      AuditLog[]
+  revenuePayee   RevenueSchemeLine[]
+  bookingsMade   Booking[]           @relation("BookingCreatedBy")
+  bookingEvents  BookingEvent[]
+  paymentsTaken  Payment[]           @relation("PaymentReceivedBy")
+  paymentsVoided Payment[]           @relation("PaymentVoidedBy")
+  messagesSent   MessageLog[]
+}
+
+model UserOutlet {
+  userId   String @db.Uuid
+  outletId String @db.Uuid
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  outlet   Outlet @relation(fields: [outletId], references: [id], onDelete: Cascade)
+
+  @@id([userId, outletId])
+}
+
+model Artist {
+  id               String   @id @default(uuid()) @db.Uuid
+  slug             String   @unique
+  displayName      String
+  role             String   @default("") // e.g. "Fine line"
+  bio              String   @default("")
+  photo            String?
+  motif            String   @default("leaf")
+  instagram        String   @default("")
+  whatsapp         String   @default("") // for internal reminders
+  years            Int      @default(0)
+  commissionBps    Int      @default(4500) // max 4500 (45%)
+  payoutPeriodDays Int      @default(14) // freelance: period starts at first job after last payout
+  isPublic         Boolean  @default(true)
+  isActive         Boolean  @default(true)
+  sort             Int      @default(0)
+  userId           String?  @unique @db.Uuid
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  homeOutletId     String?  @db.Uuid
+  homeOutlet       Outlet?  @relation("ArtistHomeOutlet", fields: [homeOutletId], references: [id], onDelete: SetNull)
+  createdAt        DateTime @default(now()) @db.Timestamptz
+  updatedAt        DateTime @updatedAt @db.Timestamptz
+
+  specialties ArtistSpecialty[]
+  shifts      ArtistShift[]
+  timeOff     ArtistTimeOff[]
+  gallery     GalleryItem[]
+  bookings    Booking[]
+}
+
+model ArtistShift {
+  id        String @id @default(uuid()) @db.Uuid
+  artistId  String @db.Uuid
+  outletId  String @db.Uuid
+  weekday   Int // 0 = Sunday … 6 = Saturday
+  startTime String // "10:00"
+  endTime   String // "18:00"
+  artist    Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  outlet    Outlet @relation(fields: [outletId], references: [id], onDelete: Cascade)
+
+  @@index([outletId, weekday])
+}
+
+enum TimeOffType {
+  LEAVE
+  GUEST_SPOT
+  BLOCKED
+}
+
+model ArtistTimeOff {
+  id       String      @id @default(uuid()) @db.Uuid
+  artistId String      @db.Uuid
+  type     TimeOffType @default(LEAVE)
+  startsAt DateTime    @db.Timestamptz
+  endsAt   DateTime    @db.Timestamptz
+  note     String      @default("")
+  artist   Artist      @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId, startsAt])
+}
+
+// ---------------------------------------------------------------------------
+// Website content
+// ---------------------------------------------------------------------------
+
+model Style {
+  id          String   @id @default(uuid()) @db.Uuid
+  slug        String   @unique
+  name        String
+  badge       String   @default("")
+  motif       String   @default("leaf")
+  image       String?
+  description String   @default("")
+  sort        Int      @default(0)
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  artists  ArtistSpecialty[]
+  gallery  GalleryItem[]
+  bookings Booking[]
+}
+
+model ArtistSpecialty {
+  artistId String @db.Uuid
+  styleId  String @db.Uuid
+  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  style    Style  @relation(fields: [styleId], references: [id], onDelete: Cascade)
+
+  @@id([artistId, styleId])
+}
+
+enum GallerySource {
+  MANUAL
+  INSTAGRAM
+}
+
+model GalleryItem {
+  id        String        @id @default(uuid()) @db.Uuid
+  code      String        @unique // e.g. W-101, used in WhatsApp messages
+  artistId  String?       @db.Uuid
+  styleId   String?       @db.Uuid
+  outletId  String?       @db.Uuid
+  image     String?
+  placement String        @default("")
+  size      String        @default("")
+  motif     String        @default("leaf")
+  caption   String        @default("")
+  source    GallerySource @default(MANUAL)
+  igMediaId String?       @unique
+  isPublic  Boolean       @default(true)
+  sort      Int           @default(0)
+  createdAt DateTime      @default(now()) @db.Timestamptz
+  updatedAt DateTime      @updatedAt @db.Timestamptz
+  artist    Artist?       @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  style     Style?        @relation(fields: [styleId], references: [id], onDelete: SetNull)
+  outlet    Outlet?       @relation(fields: [outletId], references: [id], onDelete: SetNull)
+}
+
+model Faq {
+  id       String  @id @default(uuid()) @db.Uuid
+  question String
+  answer   String
+  sort     Int     @default(0)
+  isPublic Boolean @default(true)
+}
+
+model Review {
+  id       String  @id @default(uuid()) @db.Uuid
+  name     String
+  text     String
+  artist   String  @default("") // display name, free text
+  sort     Int     @default(0)
+  isPublic Boolean @default(true)
+}
+
+/// Free-form website settings: "studio", "accents", "prep".
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt @db.Timestamptz
+}
+
+// ---------------------------------------------------------------------------
+// Business settings
+// ---------------------------------------------------------------------------
+
+/// Key/value business settings, global (outletId null) or per outlet.
+/// Keys: dp.percentBps, discount.maxBps, reminder.hoursBefore, reminder.windowStart,
+/// reminder.windowEnd, investor.payoutPeriodDays, whatsapp.* switches.
+model Setting {
+  id        String   @id @default(uuid()) @db.Uuid
+  key       String
+  outletId  String?  @db.Uuid
+  value     Json
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@unique([key, outletId])
+}
+
+enum PaymentType {
+  CASH
+  CARD
+  TRANSFER
+  QRIS
+}
+
+/// Payment methods shown in POS, each with its fee (e.g. "BCA credit card", 2%).
+model PaymentMethod {
+  id            String      @id @default(uuid()) @db.Uuid
+  name          String
+  type          PaymentType
+  feeBps        Int         @default(0)
+  requiresProof Boolean     @default(false) // transfer / QRIS proof photo
+  requiresCode  Boolean     @default(false) // card approval code
+  outletId      String?     @db.Uuid // null = all outlets
+  outlet        Outlet?     @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  sort          Int         @default(0)
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now()) @db.Timestamptz
+  updatedAt     DateTime    @updatedAt @db.Timestamptz
+  payments      Payment[]
+}
+
+enum RevenueKind {
+  TATTOO
+  PRODUCT
+  FORFEITED_DP
+}
+
+/// A revenue-sharing scheme. Changing percentages creates a new version
+/// (effectiveFrom); transactions store the split they were paid with.
+model RevenueScheme {
+  id            String              @id @default(uuid()) @db.Uuid
+  kind          RevenueKind
+  name          String
+  effectiveFrom DateTime            @default(now()) @db.Timestamptz
+  isActive      Boolean             @default(true)
+  createdById   String?             @db.Uuid
+  createdAt     DateTime            @default(now()) @db.Timestamptz
+  lines         RevenueSchemeLine[]
+
+  @@index([kind, effectiveFrom])
+}
+
+model RevenueSchemeLine {
+  id             String        @id @default(uuid()) @db.Uuid
+  schemeId       String        @db.Uuid
+  key            String // artist, management_tutut, marketing, rent, operational, investor, save_cost
+  label          String
+  bps            Int
+  group          String        @default("") // "management": a payee who is also the artist gives their share to the others in the group
+  isArtist       Boolean       @default(false)
+  takesFees      Boolean       @default(false) // payment fees are deducted from this line
+  takesRemainder Boolean       @default(false) // Rp rounding remainder goes here
+  payeeUserId    String?       @db.Uuid
+  payee          User?         @relation(fields: [payeeUserId], references: [id], onDelete: SetNull)
+  sort           Int           @default(0)
+  scheme         RevenueScheme @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Customers and bookings
+// ---------------------------------------------------------------------------
+
+/// Customers are shared across outlets and identified by their phone number.
+model Customer {
+  id             String    @id @default(uuid()) @db.Uuid
+  name           String
+  phone          String    @unique // digits with country code, e.g. 6281234567890
+  email          String    @default("")
+  country        String    @default("")
+  instagram      String    @default("")
+  notes          String    @default("")
+  marketingOptIn Boolean   @default(false)
+  createdAt      DateTime  @default(now()) @db.Timestamptz
+  updatedAt      DateTime  @updatedAt @db.Timestamptz
+  bookings       Booking[]
+
+  @@index([name])
+}
+
+enum BookingKind {
+  CONSULTATION
+  TATTOO
+}
+
+enum BookingStatus {
+  REQUESTED // from the website, no time yet
+  BOOKED // time and artist set
+  CONFIRMED // DP paid (tattoo) or customer confirmed
+  CHECKED_IN // customer arrived
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum BookingSource {
+  WEBSITE
+  POS
+  WALK_IN
+}
+
+model Booking {
+  id          String        @id @default(uuid()) @db.Uuid
+  code        String        @unique // NPI-CGU-26-00042
+  outletId    String        @db.Uuid
+  customerId  String        @db.Uuid
+  artistId    String?       @db.Uuid
+  styleId     String?       @db.Uuid
+  kind        BookingKind
+  status      BookingStatus @default(BOOKED)
+  source      BookingSource @default(POS)
+  startsAt    DateTime?     @db.Timestamptz
+  endsAt      DateTime?     @db.Timestamptz
+  placement   String        @default("")
+  size        String        @default("")
+  idea        String        @default("")
+  notes       String        @default("") // internal
+  quotedPrice BigInt? // Rupiah
+  parentId    String?       @db.Uuid // tattoo appointment made from a consultation
+  createdById String?       @db.Uuid
+  createdAt   DateTime      @default(now()) @db.Timestamptz
+  updatedAt   DateTime      @updatedAt @db.Timestamptz
+
+  outlet    Outlet         @relation(fields: [outletId], references: [id])
+  customer  Customer       @relation(fields: [customerId], references: [id])
+  artist    Artist?        @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  style     Style?         @relation(fields: [styleId], references: [id], onDelete: SetNull)
+  parent    Booking?       @relation("BookingFollowUp", fields: [parentId], references: [id], onDelete: SetNull)
+  followUps Booking[]      @relation("BookingFollowUp")
+  createdBy User?          @relation("BookingCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  events    BookingEvent[]
+  payments  Payment[]
+  messages  MessageLog[]
+
+  @@index([outletId, startsAt])
+  @@index([artistId, startsAt])
+  @@index([status, endsAt])
+}
+
+/// Timeline of a booking: created, rescheduled, status changes.
+model BookingEvent {
+  id         String         @id @default(uuid()) @db.Uuid
+  bookingId  String         @db.Uuid
+  type       String // created | status | rescheduled | updated
+  fromStatus BookingStatus?
+  toStatus   BookingStatus?
+  note       String         @default("")
+  userId     String?        @db.Uuid
+  at         DateTime       @default(now()) @db.Timestamptz
+  booking    Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user       User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([bookingId, at])
+}
+
+// ---------------------------------------------------------------------------
+// Payments and receipts
+// ---------------------------------------------------------------------------
+
+enum PaymentKind {
+  DP // down payment when the tattoo is booked
+  FINAL // remaining amount after the session
+}
+
+/// One payment against a booking. Amounts are Rupiah. Fee and method are copied at payment time.
+model Payment {
+  id                   String      @id @default(uuid()) @db.Uuid
+  receiptNo            String      @unique // NPI-CGU-R-26-00001
+  bookingId            String      @db.Uuid
+  outletId             String      @db.Uuid
+  kind                 PaymentKind
+  subtotal             BigInt // price this payment is based on (quote for DP; quote for FINAL)
+  discount             BigInt      @default(0)
+  amount               BigInt // what the customer paid now
+  methodId             String      @db.Uuid
+  methodName           String
+  methodType           PaymentType
+  feeBps               Int         @default(0)
+  feeAmount            BigInt      @default(0)
+  approvalCode         String      @default("")
+  proofFile            String      @default("") // private file name, staff only
+  note                 String      @default("")
+  receivedById         String?     @db.Uuid
+  discountApprovedById String?     @db.Uuid
+  paidAt               DateTime    @default(now()) @db.Timestamptz
+  voidedAt             DateTime?   @db.Timestamptz
+  voidedById           String?     @db.Uuid
+  voidReason           String      @default("")
+
+  booking    Booking       @relation(fields: [bookingId], references: [id])
+  method     PaymentMethod @relation(fields: [methodId], references: [id])
+  receivedBy User?         @relation("PaymentReceivedBy", fields: [receivedById], references: [id], onDelete: SetNull)
+  voidedBy   User?         @relation("PaymentVoidedBy", fields: [voidedById], references: [id], onDelete: SetNull)
+  messages   MessageLog[]
+
+  @@index([outletId, paidAt])
+  @@index([bookingId])
+}
+
+/// Which WhatsApp messages staff have sent by hand (type: consultationReminder,
+/// appointmentReminder, dpConfirmation, receipt).
+model MessageLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  type      String
+  bookingId String   @db.Uuid
+  paymentId String?  @db.Uuid
+  key       String   @unique // type:bookingId[:paymentId]
+  sentById  String?  @db.Uuid
+  sentAt    DateTime @default(now()) @db.Timestamptz
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  payment   Payment? @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  sentBy    User?    @relation(fields: [sentById], references: [id], onDelete: SetNull)
+}
+
+/// Gap-free running numbers per outlet, kind and year (booking codes, receipts).
+model NumberSequence {
+  outletId  String @db.Uuid
+  kind      String
+  year      Int
+  lastValue Int    @default(0)
+
+  @@id([outletId, kind, year])
+}
+
+// ---------------------------------------------------------------------------
+// System
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id       String   @id @default(uuid()) @db.Uuid
+  userId   String?  @db.Uuid
+  outletId String?  @db.Uuid
+  action   String // e.g. "POST /api/admin/artists"
+  entity   String   @default("")
+  entityId String   @default("")
+  detail   Json?
+  ip       String   @default("")
+  at       DateTime @default(now()) @db.Timestamptz
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([at])
+}

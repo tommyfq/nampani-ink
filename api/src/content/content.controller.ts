@@ -16,8 +16,8 @@ export class ContentController {
   }
 
   @Get('studios')
-  studios() {
-    return this.content.get().branches;
+  async studios() {
+    return (await this.content.get()).branches;
   }
 
   @Get('studios/:id')
@@ -26,8 +26,8 @@ export class ContentController {
   }
 
   @Get('styles')
-  styles() {
-    return this.content.get().styles;
+  async styles() {
+    return (await this.content.get()).styles;
   }
 
   @Get('styles/:id')
@@ -36,8 +36,8 @@ export class ContentController {
   }
 
   @Get('artists')
-  artists() {
-    return this.content.get().artists;
+  async artists() {
+    return (await this.content.get()).artists;
   }
 
   @Get('artists/:id')

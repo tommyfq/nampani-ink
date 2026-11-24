@@ -1,24 +1,66 @@
-# Nampani Ink website: Next.js (web) + NestJS (api).
+# Nampani Ink: Next.js website (web) + NestJS API (api) + PostgreSQL (db) + Redis (redis).
 #   docker compose up -d --build      → http://localhost:3000
 # Only the web service is published; the API is reached through it (/api, /uploads).
+# Local development: docker compose -f docker-compose.yml -f compose.dev.yml up -d db redis
 
 name: nampani-ink
 
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nampani
+      POSTGRES_USER: nampani
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nampani -d nampani"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
   api:
     build: ./api
     restart: unless-stopped
     environment:
       PORT: 4000
+      DATABASE_URL: postgresql://nampani:${POSTGRES_PASSWORD}@db:5432/nampani
+      REDIS_URL: redis://redis:6379
+      # Browser origins allowed to call the API with a login cookie (POS / Admin app).
+      APP_ORIGINS: ${APP_ORIGINS:-http://localhost:3000,http://localhost:3001}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
       CONTENT_FILE: /app/content/studio.json
       UPLOAD_DIR: /app/uploads
+      PRIVATE_DIR: /app/private
     volumes:
       # Edit api/content/studio.json on the host; the API picks up changes without a restart.
       - ./api/content:/app/content:ro
       # Customer reference photos survive rebuilds and restarts.
       - uploads:/app/uploads
+      # Payment proof photos: staff-only, never served publicly. Back this up.
+      - private:/app/private
     expose:
       - "4000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/api/health"]
       interval: 15s
@@ -42,5 +84,22 @@ services:
       api:
         condition: service_healthy
 
+  app:
+    build:
+      context: ./app
+      args:
+        API_INTERNAL_URL: http://api:4000
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://api:4000
+    ports:
+      - "${APP_PORT:-3001}:3001"
+    depends_on:
+      api:
+        condition: service_healthy
+
 volumes:
   uploads:
+  private:
+  pgdata:
+  redisdata:

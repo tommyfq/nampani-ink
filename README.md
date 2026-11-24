@@ -1,15 +1,31 @@
-# Nampani Ink — Tattoo Studio Website
+# Nampani Ink — Tattoo Studio Website, Booking, POS and Admin
 
-Landing page and gallery for a multi-branch tattoo studio, with bookings sent to WhatsApp.
+Landing page, bookings, POS and admin for a multi-outlet tattoo studio. Plan: [docs/system-plan.md](docs/system-plan.md).
 
-| Part | Tech | Folder |
-|---|---|---|
-| Website | Next.js 14 (App Router, server-rendered, TypeScript) | [web/](web) |
-| API | NestJS 10 (TypeScript) | [api/](api) |
-| Packaging | Docker Compose | [docker-compose.yml](docker-compose.yml) |
+| Part | Tech | Folder | Port |
+|---|---|---|---|
+| Website | Next.js 14 (App Router, server-rendered, TypeScript) | [web/](web) | 3000 |
+| POS + Admin | Next.js 14 (one app, screens by role) | [app/](app) | 3001 |
+| API | NestJS 10 + Prisma | [api/](api) | 4000 (internal) |
+| Database | PostgreSQL 16 | `db` service | internal |
+| Cache / sessions | Redis 7 | `redis` service | internal |
 
-There is no database. All studio content lives in **[api/content/studio.json](api/content/studio.json)**
-(all values are placeholders — replace them with real data).
+Website content (outlets, artists, styles, gallery, FAQs, reviews, studio details) is stored in the
+database and edited in Admin. [api/content/studio.json](api/content/studio.json) is only used for the
+one-time import (`npm run db:import`) and for the static GitHub Pages preview.
+
+## Local development
+
+```bash
+docker compose -f docker-compose.yml -f compose.dev.yml up -d db redis   # PostgreSQL on 5433, Redis on 6380
+cd api && cp .env.example .env      # use the same password as POSTGRES_PASSWORD in ../.env
+npx prisma migrate dev               # create tables
+npm run db:import                    # move studio.json content into the database (safe to re-run)
+PASSWORD='choose-a-password' npm run user:create -- --email you@example.com --name "Your Name" --role OWNER
+npm run start:dev                    # API on http://localhost:4000
+cd ../web && API_INTERNAL_URL=http://localhost:4000 npm run dev -- -p 3002   # website
+cd ../app && npm run dev             # POS + Admin on http://localhost:3001
+```
 
 ## Run with Docker
 
@@ -20,9 +36,11 @@ docker compose up -d --build
 
 Open http://localhost:3000.
 
-- Only the `web` service is published. The browser calls `/api/*` and `/uploads/*` on the website,
-  and Next.js forwards them to the `api` service inside Docker.
-- `api/content` is mounted into the API container. Edit `studio.json`; pages show the change within 30 seconds — no rebuild needed.
+- Only `web` (3000) and `app` (3001) are published. Both forward `/api/*` to the `api` service inside Docker,
+  so the login cookie stays first-party.
+- The API applies database migrations on start. First time only, import content and create the first owner:
+  `docker compose exec api node dist/scripts/import-content.js` and
+  `docker compose exec -e PASSWORD='choose-a-password' api node dist/scripts/create-user.js --email you@example.com --name "Your Name" --role OWNER`
 - Customer reference photos are stored in the `uploads` Docker volume.
 
 Useful commands:
@@ -56,13 +74,6 @@ Build the static version locally:
 ```bash
 cd web
 STATIC_EXPORT=1 BASE_PATH=/nampani-ink SITE_URL=https://tommyfq.github.io/nampani-ink npm run build   # output in web/out
-```
-
-## Run without Docker (development)
-
-```bash
-cd api && npm install && npm run start:dev     # http://localhost:4000/api/site
-cd web && npm install && npm run dev           # http://localhost:3000
 ```
 
 ## Pages (SEO structure)

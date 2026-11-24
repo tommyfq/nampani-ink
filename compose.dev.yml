@@ -1,0 +1,9 @@
+# Local development only: exposes PostgreSQL and Redis on this computer (127.0.0.1)
+# so `npm run start:dev` in api/ can reach them. Never use on the server.
+services:
+  db:
+    ports:
+      - "127.0.0.1:5433:5432"
+  redis:
+    ports:
+      - "127.0.0.1:6380:6379"
