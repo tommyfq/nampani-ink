@@ -23,6 +23,26 @@ services:
       - web
       - app
 
+  # Uptime monitor: checks the site, POS, API/database/Redis, HTTPS certificates and disk
+  # every minute and emails MONITOR_ALERT_TO on problems and recovery (api/src/scripts/monitor.ts).
+  monitor:
+    build: ./api
+    restart: unless-stopped
+    command: ["node", "dist/scripts/monitor.js"]
+    environment:
+      MONITOR_ALERT_TO: ${MONITOR_ALERT_TO:-}
+      MONITOR_SITE_URL: ${MONITOR_SITE_URL:-https://nampani.ink/}
+      MONITOR_POS_URL: ${MONITOR_POS_URL:-https://pos.nampani.ink}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-Nampani Ink <booking@nampani.ink>}
+    healthcheck:
+      disable: true
+    depends_on:
+      - caddy
+
 volumes:
   caddy_data:
   caddy_config:
