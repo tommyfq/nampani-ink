@@ -56,8 +56,8 @@ services:
       SMTP_PORT: ${SMTP_PORT:-465}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
-      MAIL_FROM: ${MAIL_FROM:-Nampani Ink <news@nampani.ink>}
-      MAIL_STUDIO_TO: ${MAIL_STUDIO_TO:-news@nampani.ink}
+      MAIL_FROM: ${MAIL_FROM:-Nampani Ink <booking@nampani.ink>}
+      MAIL_STUDIO_TO: ${MAIL_STUDIO_TO:-booking@nampani.ink}
       # Second mailbox for booking emails (empty password = send from MAIL_FROM).
       MAIL_BOOKING_FROM: ${MAIL_BOOKING_FROM:-}
       SMTP_BOOKING_USER: ${SMTP_BOOKING_USER:-}

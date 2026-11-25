@@ -14,7 +14,7 @@ import { DEFAULT_TEMPLATES, EmailParts, EmailTemplate, EmailType, fill, renderHt
 /*
  * Configuration (environment):
  *   SMTP_HOST, SMTP_PORT (465), SMTP_SECURE (true for 465), SMTP_USER, SMTP_PASS
- *   MAIL_FROM        "Nampani Ink <news@nampani.ink>" (staff login codes; also the fallback sender)
+ *   MAIL_FROM        "Nampani Ink <booking@nampani.ink>" (every email, unless the booking mailbox below is set)
  *   MAIL_BOOKING_FROM, SMTP_BOOKING_USER, SMTP_BOOKING_PASS
  *                    optional second mailbox for customer emails and studio alerts
  *                    ("Nampani Ink <booking@nampani.ink>"). Until its password is set,
@@ -54,7 +54,7 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
   private transport?: Transporter;
   private bookingTransport?: Transporter;
   private timer?: NodeJS.Timeout;
-  readonly from = process.env.MAIL_FROM || 'Nampani Ink <news@nampani.ink>';
+  readonly from = process.env.MAIL_FROM || 'Nampani Ink <booking@nampani.ink>';
   /** Sender of booking emails (reminders, receipts, confirmations, studio alerts). */
   bookingFrom = this.from;
   private readonly outboxDir = resolve(process.env.MAIL_OUTBOX_DIR || 'mail-outbox');
@@ -107,7 +107,7 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
     return this.bookingFrom.match(/<([^>]+)>/)?.[1] ?? this.bookingFrom;
   }
 
-  /** Login codes go out from MAIL_FROM (news@); everything else from the booking sender. */
+  /** Login codes go out from MAIL_FROM; everything else from the booking sender (same as MAIL_FROM unless a second mailbox is set). */
   private sender(type: Outgoing['type']) {
     if (type === 'loginCode' || !this.bookingTransport) return { transport: this.transport, from: type === 'loginCode' ? this.from : this.bookingFrom };
     return { transport: this.bookingTransport, from: this.bookingFrom };
