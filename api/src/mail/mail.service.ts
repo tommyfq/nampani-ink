@@ -14,7 +14,11 @@ import { DEFAULT_TEMPLATES, EmailParts, EmailTemplate, EmailType, fill, renderHt
 /*
  * Configuration (environment):
  *   SMTP_HOST, SMTP_PORT (465), SMTP_SECURE (true for 465), SMTP_USER, SMTP_PASS
- *   MAIL_FROM        "Nampani Ink <news@nampani.ink>"
+ *   MAIL_FROM        "Nampani Ink <news@nampani.ink>" (staff login codes; also the fallback sender)
+ *   MAIL_BOOKING_FROM, SMTP_BOOKING_USER, SMTP_BOOKING_PASS
+ *                    optional second mailbox for customer emails and studio alerts
+ *                    ("Nampani Ink <booking@nampani.ink>"). Until its password is set,
+ *                    those emails go out from MAIL_FROM instead.
  *   MAIL_REPLY_TO    optional, defaults to MAIL_FROM
  *   MAIL_STUDIO_TO   where new-request alerts go, defaults to the MAIL_FROM address
  *   POS_URL          link in studio alerts, e.g. https://pos.nampani.ink
@@ -34,7 +38,7 @@ const TZ_LABEL: Record<string, string> = { 'Asia/Makassar': 'WITA', 'Asia/Jakart
 const MAX_ATTEMPTS = 3;
 
 interface Outgoing {
-  type: EmailType | 'test';
+  type: EmailType | 'test' | 'loginCode';
   key: string;
   to: string;
   subject: string;
@@ -48,8 +52,11 @@ interface Outgoing {
 export class MailService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(MailService.name);
   private transport?: Transporter;
+  private bookingTransport?: Transporter;
   private timer?: NodeJS.Timeout;
   readonly from = process.env.MAIL_FROM || 'Nampani Ink <news@nampani.ink>';
+  /** Sender of booking emails (reminders, receipts, confirmations, studio alerts). */
+  bookingFrom = this.from;
   private readonly outboxDir = resolve(process.env.MAIL_OUTBOX_DIR || 'mail-outbox');
   readonly mode: 'smtp' | 'outbox' | 'off' = process.env.SMTP_HOST ? 'smtp' : process.env.NODE_ENV === 'production' ? 'off' : 'outbox';
 
@@ -67,8 +74,22 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
         secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : port === 465,
         auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
       });
+      const want = process.env.MAIL_BOOKING_FROM;
+      if (want && process.env.SMTP_BOOKING_USER && process.env.SMTP_BOOKING_PASS) {
+        this.bookingTransport = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port,
+          secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : port === 465,
+          auth: { user: process.env.SMTP_BOOKING_USER, pass: process.env.SMTP_BOOKING_PASS },
+        });
+        this.bookingFrom = want;
+      } else if (want) {
+        this.logger.warn(`MAIL_BOOKING_FROM is set but SMTP_BOOKING_USER/PASS are not: booking emails go out from ${this.from}`);
+      }
+      this.logger.log(`Email senders: booking emails from ${this.bookingFrom}, login codes from ${this.from}`);
     } else if (this.mode === 'outbox') {
       this.transport = nodemailer.createTransport({ streamTransport: true, buffer: true, newline: 'unix' });
+      this.bookingFrom = process.env.MAIL_BOOKING_FROM || this.from;
       this.logger.log(`SMTP is not set: emails are saved to ${this.outboxDir}`);
     } else {
       this.logger.warn('SMTP is not set: emails are not sent');
@@ -83,11 +104,17 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
   }
 
   private get fromAddress() {
-    return this.from.match(/<([^>]+)>/)?.[1] ?? this.from;
+    return this.bookingFrom.match(/<([^>]+)>/)?.[1] ?? this.bookingFrom;
+  }
+
+  /** Login codes go out from MAIL_FROM (news@); everything else from the booking sender. */
+  private sender(type: Outgoing['type']) {
+    if (type === 'loginCode' || !this.bookingTransport) return { transport: this.transport, from: type === 'loginCode' ? this.from : this.bookingFrom };
+    return { transport: this.bookingTransport, from: this.bookingFrom };
   }
 
   status() {
-    return { mode: this.mode, from: this.from, studioTo: process.env.MAIL_STUDIO_TO || this.fromAddress };
+    return { mode: this.mode, from: this.bookingFrom, loginFrom: this.from, studioTo: process.env.MAIL_STUDIO_TO || this.fromAddress };
   }
 
   /** Runs a send in the background: a failed email never breaks a booking or payment. */
@@ -190,9 +217,10 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
       });
     }
     try {
-      const info = await this.transport.sendMail({
-        from: this.from,
-        replyTo: process.env.MAIL_REPLY_TO || this.from,
+      const { transport, from } = this.sender(m.type);
+      const info = await transport!.sendMail({
+        from,
+        replyTo: m.type === 'loginCode' ? from : process.env.MAIL_REPLY_TO || from,
         to: m.to,
         subject: m.subject,
         html: renderHtml(m.parts),
@@ -456,7 +484,7 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
     const at = new Date();
     const when = `${at.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Makassar' })}, ${localParts(at, 'Asia/Makassar').hhmm} WITA`;
     return this.deliver({
-      type: 'loginCode' as EmailType,
+      type: 'loginCode',
       key: `login:${randomUUID()}`,
       to,
       subject: `Your ${studioName} login code`,
@@ -471,7 +499,7 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
         ],
         buttons: [],
         note: "Wasn't you? Someone knows your password. Don't enter the code, and ask the owner to change your password right away.",
-        studio: { name: studioName, outlet: '', address: '', whatsapp: '', email: s.email || this.fromAddress },
+        studio: { name: studioName, outlet: '', address: '', whatsapp: '', email: s.email || (this.from.match(/<([^>]+)>/)?.[1] ?? this.from) },
         footer: `You are receiving this email because someone logged in to your ${studioName} staff account.`,
       },
     });
